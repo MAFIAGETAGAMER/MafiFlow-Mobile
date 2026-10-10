@@ -1,64 +1,93 @@
-name: Android APK
+
+name: Android Release APK
+
 on:
   workflow_dispatch:
   push:
     branches: [main]
+
 permissions:
   contents: read
+
 jobs:
   android:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
       - name: Java 17
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
+
       - name: Flutter stable
         uses: subosito/flutter-action@v2
         with:
           channel: stable
           cache: true
+
       - name: Generate Android project
         run: flutter create --platforms=android --project-name mafiflow_mobile --org com.mafistudio .
+
       - name: Remove generated example test
         run: rm -f test/widget_test.dart
+
       - name: Install packages
         run: flutter pub get
+
       - name: Set Android application name
         run: |
           python3 - <<'PYANDROID'
           from pathlib import Path
+          import re
+
           manifest = Path('android/app/src/main/AndroidManifest.xml')
           text = manifest.read_text()
-          text = text.replace('android:label="mafiflow_mobile"', 'android:label="MafiFlow"')
+          text, count = re.subn(
+              r'android:label="[^"]*"',
+              'android:label="MafiFlow"',
+              text,
+              count=1
+          )
+          assert count == 1, 'Android app label not found'
           manifest.write_text(text)
-          assert 'android:label="MafiFlow"' in text, 'Android app label not set'
+          print('Application name: MafiFlow')
           PYANDROID
+
       - name: Generate official app icon
         run: |
           dart run flutter_launcher_icons
-          test -f android/app/src/main/res/mipmap-hdpi/launcher_icon.png || test -f android/app/src/main/res/mipmap-hdpi/ic_launcher.png
-      - name: Verify icon resources
+
+      - name: Verify app icon and name
         run: |
           python3 - <<'PYANDROID'
           from pathlib import Path
+
           manifest = Path('android/app/src/main/AndroidManifest.xml').read_text()
-          print('Manifest launcher icon:', manifest.split('android:icon=')[1].split('"')[1] if 'android:icon=' in manifest else 'NOT FOUND')
           assert 'android:label="MafiFlow"' in manifest
-          resources = list(Path('android/app/src/main/res').rglob('*launcher*.png'))
-          print('Generated launcher icons:', [str(x) for x in resources])
-          assert resources, 'No launcher icons generated'
+
+          icons = list(Path('android/app/src/main/res').rglob('*launcher*.png'))
+          assert icons, 'No launcher icons generated'
+
+          print('App name and icon verified')
           PYANDROID
+
       - name: Analyze
         run: flutter analyze --no-fatal-infos --no-fatal-warnings
-      - name: Build debug APK
-        run: flutter build apk --debug
+
+      - name: Build release APK
+        run: flutter build apk --release
+
+      - name: Rename APK
+        run: |
+          cp build/app/outputs/flutter-apk/app-release.apk MafiFlow-1.0-Android.apk
+
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: MafiFlow-Mobile-1.0-Beta3-Android
-          path: build/app/outputs/flutter-apk/app-debug.apk
+          name: MafiFlow-1.0-Android-Release
+          path: MafiFlow-1.0-Android.apk
           if-no-files-found: error
