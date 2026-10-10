@@ -1,35 +1,29 @@
-# MafiFlow Mobile 1.0 — Flutter
+# MafiFlow Mobile 1.0 — Beta 2 💚
 
-An Android/iOS Flutter port of MafiFlow. **Initial functional beta, not a production release.**
+Flutter application for Android and iOS. Development beta; test before publishing.
 
-## Implemented
-- Local transactions, edit/delete, categories, monthly income, recurring payments, savings goal.
-- Automatic monthly entries applied once per month (on app open, not via background service).
-- Overview and pie-chart statistics (zero and negative balances handled).
-- Optional OpenAI-compatible AI advisor with streamed responses and immediate waiting indicator.
-- Spanish/English UI, light/dark mode.
-- Import/export of compatible Windows `datos.json` via clipboard. No automatic cross-device sync.
+## Beta 2 changes
+- Fixed transaction and recurring-payment dialog opening (Navigator context)
+- Welcome wizard on fresh installs: language, currency, monthly income, starting balance, savings goal, recurring expenses
+- Calculator in the top bar
+- Five languages: Spanish, English, French, German, Bengali
+- Responsive navigation rail in landscape / bottom bar in portrait
+- Official MafiFlow icon generation for Android and iOS
+- Local financial data kept across updates with the same Android application ID
+- Fixed available balance calculation: starting balance + recorded income − recorded expenses (savings goal is a goal, not a charge)
 
-## Still to finish before claiming Windows feature parity
-- Complete French, German and Bengali translations.
-- Advanced statistics, custom category editor, rich financial breakdowns.
-- Secure API key storage: current beta uses local preferences, **not an encrypted keychain**. Avoid storing production API keys on shared devices.
-- File-based import/export, background monthly processing, full device/UI tests.
-- iOS signing, provisioning, App Store/TestFlight distribution.
+## Build Android
+Upload the project files **inside** the ZIP to the existing `MafiFlow-Mobile` repository (replace changed files). GitHub Actions → Android APK → latest green run → Artifacts → `MafiFlow-Mobile-1.0-Beta2-Android`.
 
-## Build locally
-Install Flutter and Android Studio / Xcode. From this folder:
+## Build iOS
+Use the iOS Build Check workflow. A signed IPA / App Store release requires Apple signing and an Apple Developer account.
 
-```bash
-flutter create --platforms=android,ios --project-name mafiflow_mobile --org com.mafistudio .
-flutter pub get
-flutter run
-```
+## Notes
+- This package is Flutter source, **not** a compiled APK/IPA.
+- The code has not been run on an actual Android or iOS device in this environment. Test all forms and backups before publishing.
+- Back up financial data before updating. Do not uninstall the old beta if you want to keep local data.
+- No API keys or personal financial records should be committed to GitHub.
+- Existing installations that already completed setup are not prompted again; to test onboarding use a fresh install or clear app data **only after making a backup**.
+- Android debug build is for testing, not for Play Store release.
 
-## GitHub Actions
-Upload all files (including `.github`). **Android APK** produces a debug APK under Artifacts. Debug APK is for testing; for public distribution use a signed release build. **iOS unsigned build check** checks compilation on macOS, but does not create a distributable signed iOS app.
-
-## Data compatibility
-Windows stores `datos.json` under `%APPDATA%/MafiFlow/`. Back it up first. Use Settings → Export JSON (copies text) on mobile or copy Windows JSON to clipboard, then Settings → Import JSON on mobile. This is a manual migration, not synchronization. Imported data replaces local mobile data after confirmation. **API keys are omitted from export by default.**
-
-MIT license. Developed by Mafistudio.
+License: MIT © Mafistudio.
