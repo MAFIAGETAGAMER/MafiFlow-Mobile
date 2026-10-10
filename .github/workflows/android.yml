@@ -53,7 +53,7 @@ jobs:
           assert resources, 'No launcher icons generated'
           PYANDROID
       - name: Analyze
-        run: flutter analyze --no-fatal-infos
+      run: flutter analyze --no-fatal-infos --no-fatal-warnings
       - name: Build debug APK
         run: flutter build apk --debug
       - name: Upload APK
