@@ -97,7 +97,7 @@ class _MafiFlowAppState extends State<MafiFlowApp> {
     await showDialog(context:dialogContext,builder:(c)=>StatefulBuilder(builder:(c,update)=>AlertDialog(
       title:Text(t('add')),
       content:SingleChildScrollView(child:Column(mainAxisSize:MainAxisSize.min,children:[
-        DropdownButtonFormField<String>(initialValue:type,items:['Gasto','Ingreso extra'].map((e)=>DropdownMenuItem(value:e,child:Text(e=='Gasto'?t('expense'):t('extra'))).toList(),onChanged:(v)=>update(()=>type=v!)),
+        DropdownButtonFormField<String>(initialValue:type,items:['Gasto','Ingreso extra'].map((e)=>DropdownMenuItem(value:e,child:Text(e=='Gasto'?t('expense'):t('extra')))).toList(),onChanged:(v)=>update(()=>type=v!)),
         if(type=='Gasto') DropdownButtonFormField<String>(key:ValueKey(category),initialValue:categories.contains(category)?category:null,decoration:InputDecoration(labelText:t('category')),isExpanded:true,items:categories.map((e)=>DropdownMenuItem(value:e,child:Text(catName(e)))).toList(),onChanged:(v)=>update(()=>category=v??'Otro')),
         TextButton.icon(onPressed:()async{await manageCategories();if(c.mounted)update((){if(!categories.contains(category))category=categories.isEmpty?'Otro':categories.first;});},icon:const Icon(Icons.tune),label:Text(t('editCategories'))),
         TextField(controller:amount,keyboardType:const TextInputType.numberWithOptions(decimal:true),decoration:InputDecoration(labelText:t('amount'))),
