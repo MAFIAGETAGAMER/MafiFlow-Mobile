@@ -84,7 +84,7 @@ class _MafiFlowAppState extends State<MafiFlowApp> {
     return (income:inc,spent:spent,balance:number(data['opening_balance'])+inc-spent); }
   void notice(String text){messengerKey.currentState?.showSnackBar(SnackBar(content:Text(text)));}
   Widget card(Widget child)=>Card(margin:const EdgeInsets.symmetric(vertical:7),child:Padding(padding:const EdgeInsets.all(16),child:child));
-  Widget heading(String text)=>Padding(padding:const EdgeInsets.only(top:12,bottom:8),child:Text(text,style:Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight:FontWeight.bold)));
+  Widget heading(String text)=>Padding(padding:const EdgeInsets.only(top:12,bottom:8),child:Text(text,style:TextStyle(fontSize:22,fontWeight:FontWeight.bold,color:dark?Colors.white:Colors.black87)));
   @override Widget build(BuildContext context){final lang='${data['language']}';activeCurrency='${data['currency']??'USD'}';return MaterialApp(navigatorKey:navKey,scaffoldMessengerKey:messengerKey,debugShowCheckedModeBanner:false,title:'MafiFlow Mobile',theme:ThemeData(colorScheme:ColorScheme.fromSeed(seedColor:green),useMaterial3:true),darkTheme:ThemeData(colorScheme:ColorScheme.fromSeed(seedColor:green,brightness:Brightness.dark),useMaterial3:true),themeMode:dark?ThemeMode.dark:ThemeMode.light,home:!ready?const Scaffold(body:Center(child:CircularProgressIndicator())):data['setup_completed']!=true?WelcomeWizard(onComplete:(v) async {data.addAll(v);data['setup_completed']=true;applyMonthly();await save();}):Builder(builder:(shellContext)=>Scaffold(appBar:AppBar(title:Row(children:[Image.asset('assets/logo.png',height:34),const SizedBox(width:10),const Text('MafiFlow Mobile')]),actions:[IconButton(tooltip:t('calculator'),icon:const Icon(Icons.calculate_outlined),onPressed:()=>showDialog(context:dialogContext,builder:(_)=>const CalculatorDialog())),IconButton(icon:const Icon(Icons.settings),onPressed:()=>setState(()=>tab=5))]),body:SafeArea(child:LayoutBuilder(builder:(ctx,box){final content=IndexedStack(index:tab,children:[home(),transactions(),monthly(),stats(),Advisor(data:data,lang:lang,onSave:save),settings()]);return content;})),bottomNavigationBar:NavigationBar(selectedIndex:tab,onDestinationSelected:(v)=>setState(()=>tab=v),labelBehavior:NavigationDestinationLabelBehavior.onlyShowSelected,destinations:[NavigationDestination(icon:const Icon(Icons.home_outlined),label:t('home')),NavigationDestination(icon:const Icon(Icons.receipt_long),label:t('moves')),NavigationDestination(icon:const Icon(Icons.event_repeat),label:t('monthly')),NavigationDestination(icon:const Icon(Icons.pie_chart_outline),label:t('stats')),NavigationDestination(icon:const Icon(Icons.smart_toy_outlined),label:t('ai')),NavigationDestination(icon:const Icon(Icons.settings_outlined),label:t('settings'))]))));}
   Widget scroll(List<Widget> widgets)=>ListView(padding:const EdgeInsets.all(16),children:widgets);
   Widget stat(String label,double value,IconData icon,Color color)=>card(Row(children:[Icon(icon,color:color),const SizedBox(width:14),Expanded(child:Text(label)),Text(money(value),style:TextStyle(fontWeight:FontWeight.bold,fontSize:19,color:color))]));
@@ -153,20 +153,20 @@ class _MafiFlowAppState extends State<MafiFlowApp> {
       stat(t('income'),v.income,Icons.arrow_upward,green),
       stat(t('expenses'),v.spent,Icons.arrow_downward,expenseRed),
       card(Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
-        Text(t('monthComparison'),style:Theme.of(context).textTheme.titleMedium),const SizedBox(height:12),
+        Text(t('monthComparison'),style:Theme.of(dialogContext).textTheme.titleMedium),const SizedBox(height:12),
         Row(children:[Expanded(child:Text(t('spendingChange'))),Text(percentChange(v.spent,prior.spent),style:TextStyle(color:v.spent>prior.spent?expenseRed:green,fontWeight:FontWeight.bold))]),
         const SizedBox(height:8),Row(children:[Expanded(child:Text(t('incomeChange'))),Text(percentChange(v.income,prior.income),style:const TextStyle(fontWeight:FontWeight.bold))]),
-        if(prior.spent==0&&prior.income==0)Padding(padding:const EdgeInsets.only(top:8),child:Text(t('noPrevious'),style:Theme.of(context).textTheme.bodySmall))
+        if(prior.spent==0&&prior.income==0)Padding(padding:const EdgeInsets.only(top:8),child:Text(t('noPrevious'),style:Theme.of(dialogContext).textTheme.bodySmall))
       ])),
       card(Column(children:[
-        Text(t('distribution'),style:Theme.of(context).textTheme.titleMedium),const SizedBox(height:12),
+        Text(t('distribution'),style:Theme.of(dialogContext).textTheme.titleMedium),const SizedBox(height:12),
         SizedBox(height:200,child:sum<=0?Center(child:Text(t('noData'))):PieChart(PieChartData(sections:[
           if(income>0)PieChartSectionData(value:income,color:green,title:'${(100*income/sum).round()}%',radius:72),
           if(spent>0)PieChartSectionData(value:spent,color:expenseRed,title:'${(100*spent/sum).round()}%',radius:72)
         ],sectionsSpace:2,centerSpaceRadius:30)))
       ])),
       card(Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
-        Text(t('monthlyTrend'),style:Theme.of(context).textTheme.titleMedium),const SizedBox(height:8),
+        Text(t('monthlyTrend'),style:Theme.of(dialogContext).textTheme.titleMedium),const SizedBox(height:8),
         SegmentedButton<String>(showSelectedIcon:false,segments:[ButtonSegment(value:'bar',label:Text(t('barChart'))),ButtonSegment(value:'line',label:Text(t('lineChart')))],selected:{chartMode=='line'?'line':'bar'},onSelectionChanged:(v)=>setState(()=>chartMode=v.first)),
         const SizedBox(height:18),
         SizedBox(height:230,child:chartMode=='line'?LineChart(LineChartData(
