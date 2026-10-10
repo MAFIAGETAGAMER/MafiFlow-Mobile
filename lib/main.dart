@@ -59,7 +59,7 @@ class MafiFlowApp extends StatefulWidget { const MafiFlowApp({super.key}); @over
 class _MafiFlowAppState extends State<MafiFlowApp> {
   final navKey=GlobalKey<NavigatorState>();
   final messengerKey=GlobalKey<ScaffoldMessengerState>();
-  BuildContext get dialogContext => navKey.currentState!.overlay!.context;
+  BuildContext get dialogContext => navKey.currentState!.context;
 
   Map<String,dynamic> data=Map<String,dynamic>.from(defaults);
   bool ready=false; int tab=0;
@@ -73,7 +73,15 @@ class _MafiFlowAppState extends State<MafiFlowApp> {
   @override void initState(){super.initState();load();}
   Future<void> load() async {final p=await SharedPreferences.getInstance(); final raw=p.getString('mafiflow_data'); if(raw!=null){try{final obj=jsonDecode(raw); if(obj is Map){data={...defaults,...Map<String,dynamic>.from(obj)}; if(!obj.containsKey('setup_completed') || (obj['setup_completed']==true && (records(obj['transactions']).isNotEmpty || number(obj['monthly_income'])>0 || records(obj['monthly_payments']).isNotEmpty))) data['setup_completed']=true;}}catch(_){}} if(data['setup_completed']==true)applyMonthly(); if(mounted)setState(()=>ready=true);}
   Future<void> persistWithoutRebuild() async {final p=await SharedPreferences.getInstance(); await p.setString('mafiflow_data',jsonEncode(data));}
-  Future<void> save() async {await persistWithoutRebuild(); if(mounted)setState((){});}
+  void refreshAfterDialog() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) setState(() {});
+    });
+  }
+  Future<void> save() async {
+    await persistWithoutRebuild();
+    if (mounted) refreshAfterDialog();
+  }
   void applyMonthly(){ final month=monthNow();final done=List<String>.from((data['processed_months'] as List?) ?? []);if(done.contains(month))return;
     final list=tx;final stamp='$month-01 09:00:00'; final income=number(data['monthly_income']);
     if(income>0)list.add({'date':stamp,'type':'Ingreso mensual','category':'Ingreso mensual','amount':income,'note':'Ingreso mensual automático','auto_month':month});
@@ -114,8 +122,8 @@ class _MafiFlowAppState extends State<MafiFlowApp> {
       },child:Text(t('save')))]
     )));
     if(transactionAdded) await save();
-    else if(mounted) setState((){});
-    amount.dispose();note.dispose();
+    else refreshAfterDialog();
+    WidgetsBinding.instance.addPostFrameCallback((_){amount.dispose();note.dispose();});
   }
   Future<void> manageCategories() async {
     final controller=TextEditingController();
@@ -127,11 +135,12 @@ class _MafiFlowAppState extends State<MafiFlowApp> {
         FilledButton.icon(onPressed:(){final name=controller.text.trim();if(name.isEmpty)return;final hidden=(data['hidden_categories'] as List? ?? []).map((e)=>'$e').toList();hidden.remove(name);data['hidden_categories']=hidden;if(!defaultCategories.contains(name)){data['custom_categories']={...(data['custom_categories'] as List? ?? []).map((e)=>'$e'),name}.toList();}controller.clear();update((){});persistWithoutRebuild();},icon:const Icon(Icons.add),label:Text(t('newCategory'))),
         ...categories.map((name)=>ListTile(dense:true,title:Text(catName(name)),trailing:IconButton(tooltip:t('removeCategory'),icon:const Icon(Icons.delete_outline),onPressed:(){if(defaultCategories.contains(name)){data['hidden_categories']={...(data['hidden_categories'] as List? ?? []).map((e)=>'$e'),name}.toList();}else{data['custom_categories']=(data['custom_categories'] as List? ?? []).where((e)=>'$e'!=name).toList();}update((){});persistWithoutRebuild();}))),
         TextButton.icon(onPressed:(){data['hidden_categories']=[];update((){});persistWithoutRebuild();},icon:const Icon(Icons.restore),label:Text(t('restoreCategories'))),
-        Text(t('categoryInUse'),style:Theme.of(ctx).textTheme.bodySmall)
+        Text(t('categoryInUse'),style:const TextStyle(fontSize:12))
       ]))),
       actions:[TextButton(onPressed:()=>Navigator.pop(ctx),child:Text(t('save')))]
     )));
-    controller.dispose();
+    WidgetsBinding.instance.addPostFrameCallback((_){controller.dispose();});
+    refreshAfterDialog();
   }
   Widget transactions()=>scroll([heading(t('moves')),FilledButton.icon(onPressed:addTransaction,icon:const Icon(Icons.add),label:Text(t('add'))),...tx.reversed.map((x)=>tile(x,onDelete:(){final list=tx;// compare values as records() creates copies
     final i=list.indexWhere((v)=>v['date']==x['date']&&v['amount']==x['amount']&&v['type']==x['type']&&v['note']==x['note']);if(i>=0)list.removeAt(i);data['transactions']=list;save();}))]);
