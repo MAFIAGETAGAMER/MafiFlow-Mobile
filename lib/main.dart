@@ -72,7 +72,8 @@ class _MafiFlowAppState extends State<MafiFlowApp> {
   bool get dark=>data['theme']=='dark';
   @override void initState(){super.initState();load();}
   Future<void> load() async {final p=await SharedPreferences.getInstance(); final raw=p.getString('mafiflow_data'); if(raw!=null){try{final obj=jsonDecode(raw); if(obj is Map){data={...defaults,...Map<String,dynamic>.from(obj)}; if(!obj.containsKey('setup_completed') || (obj['setup_completed']==true && (records(obj['transactions']).isNotEmpty || number(obj['monthly_income'])>0 || records(obj['monthly_payments']).isNotEmpty))) data['setup_completed']=true;}}catch(_){}} if(data['setup_completed']==true)applyMonthly(); if(mounted)setState(()=>ready=true);}
-  Future<void> save() async {final p=await SharedPreferences.getInstance(); await p.setString('mafiflow_data',jsonEncode(data)); if(mounted)setState((){});}
+  Future<void> persistWithoutRebuild() async {final p=await SharedPreferences.getInstance(); await p.setString('mafiflow_data',jsonEncode(data));}
+  Future<void> save() async {await persistWithoutRebuild(); if(mounted)setState((){});}
   void applyMonthly(){ final month=monthNow();final done=List<String>.from((data['processed_months'] as List?) ?? []);if(done.contains(month))return;
     final list=tx;final stamp='$month-01 09:00:00'; final income=number(data['monthly_income']);
     if(income>0)list.add({'date':stamp,'type':'Ingreso mensual','category':'Ingreso mensual','amount':income,'note':'Ingreso mensual automático','auto_month':month});
@@ -94,6 +95,7 @@ class _MafiFlowAppState extends State<MafiFlowApp> {
     String type='Gasto';
     String category=categories.isEmpty?'Otro':categories.first;
     final amount=TextEditingController(),note=TextEditingController();
+    bool transactionAdded=false;
     await showDialog(context:dialogContext,builder:(c)=>StatefulBuilder(builder:(c,update)=>AlertDialog(
       title:Text(t('add')),
       content:SingleChildScrollView(child:Column(mainAxisSize:MainAxisSize.min,children:[
@@ -107,9 +109,12 @@ class _MafiFlowAppState extends State<MafiFlowApp> {
         final n=double.tryParse(amount.text.replaceAll(',','.'));
         if(n==null||n<=0||!n.isFinite){notice(t('invalid'));return;}
         data['transactions']=[...tx,{'date':stampNow(),'type':type,'category':type=='Gasto'?category:'Ingreso extra','amount':n,'note':note.text}];
-        Navigator.pop(c);save();
+        transactionAdded=true;
+        Navigator.pop(c);
       },child:Text(t('save')))]
     )));
+    if(transactionAdded) await save();
+    else if(mounted) setState((){});
     amount.dispose();note.dispose();
   }
   Future<void> manageCategories() async {
@@ -119,9 +124,9 @@ class _MafiFlowAppState extends State<MafiFlowApp> {
       content:SizedBox(width:380,child:SingleChildScrollView(child:Column(mainAxisSize:MainAxisSize.min,children:[
         TextField(controller:controller,decoration:InputDecoration(labelText:t('categoryName'))),
         const SizedBox(height:8),
-        FilledButton.icon(onPressed:(){final name=controller.text.trim();if(name.isEmpty)return;final hidden=(data['hidden_categories'] as List? ?? []).map((e)=>'$e').toList();hidden.remove(name);data['hidden_categories']=hidden;if(!defaultCategories.contains(name)){data['custom_categories']={...(data['custom_categories'] as List? ?? []).map((e)=>'$e'),name}.toList();}controller.clear();update((){});save();},icon:const Icon(Icons.add),label:Text(t('newCategory'))),
-        ...categories.map((name)=>ListTile(dense:true,title:Text(catName(name)),trailing:IconButton(tooltip:t('removeCategory'),icon:const Icon(Icons.delete_outline),onPressed:(){if(defaultCategories.contains(name)){data['hidden_categories']={...(data['hidden_categories'] as List? ?? []).map((e)=>'$e'),name}.toList();}else{data['custom_categories']=(data['custom_categories'] as List? ?? []).where((e)=>'$e'!=name).toList();}update((){});save();}))),
-        TextButton.icon(onPressed:(){data['hidden_categories']=[];update((){});save();},icon:const Icon(Icons.restore),label:Text(t('restoreCategories'))),
+        FilledButton.icon(onPressed:(){final name=controller.text.trim();if(name.isEmpty)return;final hidden=(data['hidden_categories'] as List? ?? []).map((e)=>'$e').toList();hidden.remove(name);data['hidden_categories']=hidden;if(!defaultCategories.contains(name)){data['custom_categories']={...(data['custom_categories'] as List? ?? []).map((e)=>'$e'),name}.toList();}controller.clear();update((){});persistWithoutRebuild();},icon:const Icon(Icons.add),label:Text(t('newCategory'))),
+        ...categories.map((name)=>ListTile(dense:true,title:Text(catName(name)),trailing:IconButton(tooltip:t('removeCategory'),icon:const Icon(Icons.delete_outline),onPressed:(){if(defaultCategories.contains(name)){data['hidden_categories']={...(data['hidden_categories'] as List? ?? []).map((e)=>'$e'),name}.toList();}else{data['custom_categories']=(data['custom_categories'] as List? ?? []).where((e)=>'$e'!=name).toList();}update((){});persistWithoutRebuild();}))),
+        TextButton.icon(onPressed:(){data['hidden_categories']=[];update((){});persistWithoutRebuild();},icon:const Icon(Icons.restore),label:Text(t('restoreCategories'))),
         Text(t('categoryInUse'),style:Theme.of(ctx).textTheme.bodySmall)
       ]))),
       actions:[TextButton(onPressed:()=>Navigator.pop(ctx),child:Text(t('save')))]
