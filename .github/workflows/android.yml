@@ -32,6 +32,29 @@ jobs:
       - name: Generate Android project
         run: flutter create --platforms=android --project-name mafiflow_mobile --org com.mafistudio .
 
+      - name: Enable Internet permission
+        run: |
+          python3 - <<'PYANDROID'
+          from pathlib import Path
+
+          manifest = Path('android/app/src/main/AndroidManifest.xml')
+          text = manifest.read_text()
+
+          permission = '<uses-permission android:name="android.permission.INTERNET" />'
+
+          if 'android.permission.INTERNET' not in text:
+              text = text.replace(
+                  '<application',
+                  permission + '\n    <application',
+                  1
+              )
+
+          manifest.write_text(text)
+
+          assert 'android.permission.INTERNET' in manifest.read_text()
+          print('Android Internet permission enabled')
+          PYANDROID
+
       - name: Remove generated example test
         run: rm -f test/widget_test.dart
 
@@ -52,6 +75,7 @@ jobs:
               text,
               count=1
           )
+
           assert count == 1, 'Android app label not found'
           manifest.write_text(text)
           print('Application name: MafiFlow')
@@ -61,18 +85,22 @@ jobs:
         run: |
           dart run flutter_launcher_icons
 
-      - name: Verify app icon and name
+      - name: Verify app configuration
         run: |
           python3 - <<'PYANDROID'
           from pathlib import Path
 
           manifest = Path('android/app/src/main/AndroidManifest.xml').read_text()
+
           assert 'android:label="MafiFlow"' in manifest
+          assert 'android.permission.INTERNET' in manifest
 
           icons = list(Path('android/app/src/main/res').rglob('*launcher*.png'))
           assert icons, 'No launcher icons generated'
 
-          print('App name and icon verified')
+          print('App name verified: MafiFlow')
+          print('Internet permission verified')
+          print('App icon verified')
           PYANDROID
 
       - name: Analyze
