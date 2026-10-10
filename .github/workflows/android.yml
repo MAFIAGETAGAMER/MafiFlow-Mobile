@@ -42,8 +42,13 @@ jobs:
           text = manifest.read_text()
 
           permission = '<uses-permission android:name="android.permission.INTERNET" />'
+
           if 'android.permission.INTERNET' not in text:
-              text = text.replace('<application', permission + '\n    <application', 1)
+              text = text.replace(
+                  '<application',
+                  permission + '\n    <application',
+                  1
+              )
 
           text, count = re.subn(
               r'android:label="[^"]*"',
@@ -51,9 +56,13 @@ jobs:
               text,
               count=1
           )
-          assert count == 1, 'App label not found'
+
+          assert count == 1, 'Android app label not found'
+
           manifest.write_text(text)
-          print('MafiFlow name and Internet permission configured')
+
+          print('MafiFlow name configured')
+          print('Internet permission enabled')
           PYANDROID
 
       - name: Remove generated example test
@@ -104,13 +113,17 @@ jobs:
           properties = android / 'key.properties'
 
           def escape_property(value):
-              return value.replace('\\', '\\\\').replace('\n', '\\n').replace('\r', '\\r')
+              return (
+                  value.replace('\\', '\\\\')
+                  .replace('\n', '\\n')
+                  .replace('\r', '\\r')
+              )
 
           properties.write_text(
               'storePassword=' + escape_property(os.environ['KEYSTORE_PASSWORD']) + '\n'
               'keyPassword=' + escape_property(os.environ['KEY_PASSWORD']) + '\n'
               'keyAlias=' + escape_property(os.environ['KEY_ALIAS']) + '\n'
-              'storeFile=../mafistudio-release.jks\n'
+              'storeFile=mafistudio-release.jks\n'
           )
 
           gradle_kts = android / 'app/build.gradle.kts'
@@ -130,13 +143,19 @@ jobs:
               config = '''
           val releaseKeystoreProperties = Properties()
           val releaseKeystoreFile = rootProject.file("key.properties")
+
           FileInputStream(releaseKeystoreFile).use {
               releaseKeystoreProperties.load(it)
           }
 
           '''
 
-              text = text.replace('android {', config + 'android {', 1)
+              if 'val releaseKeystoreProperties' not in text:
+                  text = text.replace(
+                      'android {',
+                      config + 'android {',
+                      1
+                  )
 
               signing = '''
               create("release") {
@@ -169,11 +188,18 @@ jobs:
               config = '''
           def releaseKeystoreProperties = new Properties()
           def releaseKeystoreFile = rootProject.file('key.properties')
-          releaseKeystoreProperties.load(new FileInputStream(releaseKeystoreFile))
+
+          releaseKeystoreProperties.load(
+              new FileInputStream(releaseKeystoreFile)
+          )
 
           '''
 
-              text = text.replace('android {', config + 'android {', 1)
+              text = text.replace(
+                  'android {',
+                  config + 'android {',
+                  1
+              )
 
               signing = '''
               release {
@@ -215,6 +241,7 @@ jobs:
       - name: Verify APK permissions and signature
         run: |
           APK=build/app/outputs/flutter-apk/app-release.apk
+
           AAPT=$(find "$ANDROID_HOME/build-tools" -name aapt -type f | sort -V | tail -1)
           APKSIGNER=$(find "$ANDROID_HOME/build-tools" -name apksigner -type f | sort -V | tail -1)
 
@@ -222,13 +249,17 @@ jobs:
           test -n "$AAPT"
           test -n "$APKSIGNER"
 
+          echo "Checking Internet permission..."
           "$AAPT" dump permissions "$APK" | tee permissions.txt
           grep -q 'android.permission.INTERNET' permissions.txt
 
+          echo "Checking APK signature..."
           "$APKSIGNER" verify --verbose "$APK"
+
+          echo "Certificate fingerprint:"
           "$APKSIGNER" verify --print-certs "$APK" | grep 'Signer #1 certificate SHA-256 digest'
 
-          echo "APK signature and Internet permission verified"
+          echo "SUCCESS: APK signature and Internet permission verified"
 
       - name: Rename APK
         run: cp build/app/outputs/flutter-apk/app-release.apk MafiFlow-1.0-Android.apk
