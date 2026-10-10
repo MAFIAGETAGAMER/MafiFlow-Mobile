@@ -4,46 +4,65 @@ name: Android APK
 on:
   workflow_dispatch:
   push:
-    branches: [main]
+    branches:
+      - main
 
 permissions:
   contents: read
 
 jobs:
   android:
+    name: Build MafiFlow Android
     runs-on: ubuntu-latest
 
     steps:
+      # 1. Descargar el codigo del repositorio
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # 2. Instalar Java para Android
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      # 3. Instalar Flutter
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: stable
           cache: true
 
+      # 4. Generar los archivos nativos de Android
       - name: Generate Android project
-        run: flutter create --platforms=android --project-name mafiflow_mobile --org com.mafistudio .
+        run: |
+          flutter create --platforms=android --project-name mafiflow_mobile --org com.mafistudio .
 
-      - name: Remove default Flutter example test
+      # 5. Eliminar la prueba predeterminada de Flutter
+      - name: Remove default Flutter test
         run: |
           if [ -f test/widget_test.dart ]; then
             rm test/widget_test.dart
           fi
 
-      - name: Install packages
+      # 6. Instalar las dependencias
+      - name: Install dependencies
         run: flutter pub get
 
+      # 7. Analizar el codigo
       - name: Analyze Flutter project
         run: flutter analyze --no-fatal-infos
 
+      # 8. Compilar APK de prueba
       - name: Build Android APK
         run: flutter build apk --debug
 
-      - name: Upload APK
+      # 9. Publicar el APK como artifact
+      - name: Upload Android APK
         uses: actions/upload-artifact@v4
         with:
           name: MafiFlow-Mobile-1.0-Android-DEBUG
           path: build/app/outputs/flutter-apk/app-debug.apk
           if-no-files-found: error
+          retention-days: 30
