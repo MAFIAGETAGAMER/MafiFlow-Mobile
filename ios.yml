@@ -1,0 +1,29 @@
+name: iOS Build Check
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  ios:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+      - name: Generate iOS project
+        run: flutter create --platforms=ios --project-name mafiflow_mobile --org com.mafistudio .
+      - name: Install dependencies
+        run: flutter pub get
+      - name: Generate iOS icon from the same logo
+        run: |
+          python3 - <<'PYICON'
+          from pathlib import Path
+          p = Path('pubspec.yaml')
+          content = p.read_text().replace('  android: true\n  ios: false', '  android: false\n  ios: true')
+          p.write_text(content)
+          PYICON
+          flutter pub get
+          dart run flutter_launcher_icons
+      - name: Build iOS without code signing
+        run: flutter build ios --no-codesign
