@@ -27,3 +27,16 @@ Use the iOS Build Check workflow. A signed IPA / App Store release requires Appl
 - Android debug build is for testing, not for Play Store release.
 
 License: MIT © Mafistudio.
+
+
+## Beta 3 (icon + bottom navigation)
+
+- Navigation bar stays at the bottom in portrait and landscape (no side rail).
+- Launcher icon is generated from `assets/app_icon.png` and checked during Android CI.
+- Android launcher label is `MafiFlow` (rather than `mafiflow_mobile`).
+- Build number incremented to `1.0.0+3`.
+- Planned for later: preset categories and comprehensive settings translations.
+
+To find the icon step in GitHub: Actions → Android APK → latest run → android job → Generate official app icon / Verify icon resources.
+
+Do not uninstall the existing app if you want to keep locally stored data.
