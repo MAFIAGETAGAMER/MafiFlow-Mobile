@@ -32,27 +32,28 @@ jobs:
       - name: Generate Android project
         run: flutter create --platforms=android --project-name mafiflow_mobile --org com.mafistudio .
 
-      - name: Enable Internet permission
+      - name: Configure Android manifest
         run: |
           python3 - <<'PYANDROID'
           from pathlib import Path
+          import re
 
           manifest = Path('android/app/src/main/AndroidManifest.xml')
           text = manifest.read_text()
 
           permission = '<uses-permission android:name="android.permission.INTERNET" />'
-
           if 'android.permission.INTERNET' not in text:
-              text = text.replace(
-                  '<application',
-                  permission + '\n    <application',
-                  1
-              )
+              text = text.replace('<application', permission + '\n    <application', 1)
 
+          text, count = re.subn(
+              r'android:label="[^"]*"',
+              'android:label="MafiFlow"',
+              text,
+              count=1
+          )
+          assert count == 1, 'App label not found'
           manifest.write_text(text)
-
-          assert 'android.permission.INTERNET' in manifest.read_text()
-          print('Android Internet permission enabled')
+          print('MafiFlow name and Internet permission configured')
           PYANDROID
 
       - name: Remove generated example test
@@ -61,67 +62,176 @@ jobs:
       - name: Install packages
         run: flutter pub get
 
-      - name: Set Android application name
-        run: |
-          python3 - <<'PYANDROID'
-          from pathlib import Path
-          import re
-
-          manifest = Path('android/app/src/main/AndroidManifest.xml')
-          text = manifest.read_text()
-          text, count = re.subn(
-              r'android:label="[^"]*"',
-              'android:label="MafiFlow"',
-              text,
-              count=1
-          )
-
-          assert count == 1, 'Android app label not found'
-          manifest.write_text(text)
-          print('Application name: MafiFlow')
-          PYANDROID
-
       - name: Generate official app icon
         run: dart run flutter_launcher_icons
 
-      - name: Verify app configuration
+      - name: Configure official release signing
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
           python3 - <<'PYANDROID'
+          import os
+          import base64
           from pathlib import Path
 
-          manifest = Path('android/app/src/main/AndroidManifest.xml').read_text()
+          required = [
+              'KEYSTORE_BASE64',
+              'KEYSTORE_PASSWORD',
+              'KEY_ALIAS',
+              'KEY_PASSWORD'
+          ]
 
-          assert 'android:label="MafiFlow"' in manifest
-          assert 'android.permission.INTERNET' in manifest
+          for name in required:
+              if not os.environ.get(name):
+                  raise RuntimeError(f'Missing GitHub secret: {name}')
 
-          icons = list(Path('android/app/src/main/res').rglob('*launcher*.png'))
-          assert icons, 'No launcher icons generated'
+          android = Path('android')
+          keystore = android / 'mafistudio-release.jks'
 
-          print('App name verified')
-          print('Internet permission declared')
-          print('App icon verified')
+          keystore.write_bytes(
+              base64.b64decode(
+                  os.environ['KEYSTORE_BASE64'].strip(),
+                  validate=True
+              )
+          )
+
+          if not keystore.stat().st_size:
+              raise RuntimeError('Keystore is empty')
+
+          properties = android / 'key.properties'
+
+          def escape_property(value):
+              return value.replace('\\', '\\\\').replace('\n', '\\n').replace('\r', '\\r')
+
+          properties.write_text(
+              'storePassword=' + escape_property(os.environ['KEYSTORE_PASSWORD']) + '\n'
+              'keyPassword=' + escape_property(os.environ['KEY_PASSWORD']) + '\n'
+              'keyAlias=' + escape_property(os.environ['KEY_ALIAS']) + '\n'
+              'storeFile=../mafistudio-release.jks\n'
+          )
+
+          gradle_kts = android / 'app/build.gradle.kts'
+          gradle_groovy = android / 'app/build.gradle'
+
+          if gradle_kts.exists():
+              text = gradle_kts.read_text()
+
+              imports = (
+                  'import java.util.Properties\n'
+                  'import java.io.FileInputStream\n'
+              )
+
+              if 'import java.util.Properties' not in text:
+                  text = imports + text
+
+              config = '''
+          val releaseKeystoreProperties = Properties()
+          val releaseKeystoreFile = rootProject.file("key.properties")
+          FileInputStream(releaseKeystoreFile).use {
+              releaseKeystoreProperties.load(it)
+          }
+
+          '''
+
+              text = text.replace('android {', config + 'android {', 1)
+
+              signing = '''
+              create("release") {
+                  keyAlias = releaseKeystoreProperties["keyAlias"] as String
+                  keyPassword = releaseKeystoreProperties["keyPassword"] as String
+                  storeFile = rootProject.file(releaseKeystoreProperties["storeFile"] as String)
+                  storePassword = releaseKeystoreProperties["storePassword"] as String
+              }
+          '''
+
+              text = text.replace(
+                  'buildTypes {',
+                  'signingConfigs {\n' + signing + '    }\n\n    buildTypes {',
+                  1
+              )
+
+              text = text.replace(
+                  'signingConfig = signingConfigs.getByName("debug")',
+                  'signingConfig = signingConfigs.getByName("release")'
+              )
+
+              if 'signingConfig = signingConfigs.getByName("release")' not in text:
+                  raise RuntimeError('Could not configure release signing')
+
+              gradle_kts.write_text(text)
+
+          elif gradle_groovy.exists():
+              text = gradle_groovy.read_text()
+
+              config = '''
+          def releaseKeystoreProperties = new Properties()
+          def releaseKeystoreFile = rootProject.file('key.properties')
+          releaseKeystoreProperties.load(new FileInputStream(releaseKeystoreFile))
+
+          '''
+
+              text = text.replace('android {', config + 'android {', 1)
+
+              signing = '''
+              release {
+                  keyAlias releaseKeystoreProperties['keyAlias']
+                  keyPassword releaseKeystoreProperties['keyPassword']
+                  storeFile rootProject.file(releaseKeystoreProperties['storeFile'])
+                  storePassword releaseKeystoreProperties['storePassword']
+              }
+          '''
+
+              text = text.replace(
+                  'buildTypes {',
+                  'signingConfigs {\n' + signing + '    }\n\n    buildTypes {',
+                  1
+              )
+
+              text = text.replace(
+                  'signingConfig signingConfigs.debug',
+                  'signingConfig signingConfigs.release'
+              )
+
+              if 'signingConfig signingConfigs.release' not in text:
+                  raise RuntimeError('Could not configure release signing')
+
+              gradle_groovy.write_text(text)
+
+          else:
+              raise RuntimeError('Android Gradle configuration not found')
+
+          print('Official Mafistudio release signing configured')
           PYANDROID
 
       - name: Analyze
         run: flutter analyze --no-fatal-infos --no-fatal-warnings
 
-      - name: Build release APK
+      - name: Build signed release APK
         run: flutter build apk --release
 
-      - name: Verify Internet permission in final APK
+      - name: Verify APK permissions and signature
         run: |
           APK=build/app/outputs/flutter-apk/app-release.apk
           AAPT=$(find "$ANDROID_HOME/build-tools" -name aapt -type f | sort -V | tail -1)
+          APKSIGNER=$(find "$ANDROID_HOME/build-tools" -name apksigner -type f | sort -V | tail -1)
 
+          test -f "$APK"
           test -n "$AAPT"
-          "$AAPT" dump permissions "$APK" | tee permissions.txt
+          test -n "$APKSIGNER"
 
+          "$AAPT" dump permissions "$APK" | tee permissions.txt
           grep -q 'android.permission.INTERNET' permissions.txt
-          echo "SUCCESS: Final APK has Internet permission"
+
+          "$APKSIGNER" verify --verbose "$APK"
+          "$APKSIGNER" verify --print-certs "$APK" | grep 'Signer #1 certificate SHA-256 digest'
+
+          echo "APK signature and Internet permission verified"
 
       - name: Rename APK
-        run: |
-          cp build/app/outputs/flutter-apk/app-release.apk MafiFlow-1.0-Android.apk
+        run: cp build/app/outputs/flutter-apk/app-release.apk MafiFlow-1.0-Android.apk
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
