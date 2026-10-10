@@ -82,8 +82,7 @@ jobs:
           PYANDROID
 
       - name: Generate official app icon
-        run: |
-          dart run flutter_launcher_icons
+        run: dart run flutter_launcher_icons
 
       - name: Verify app configuration
         run: |
@@ -98,8 +97,8 @@ jobs:
           icons = list(Path('android/app/src/main/res').rglob('*launcher*.png'))
           assert icons, 'No launcher icons generated'
 
-          print('App name verified: MafiFlow')
-          print('Internet permission verified')
+          print('App name verified')
+          print('Internet permission declared')
           print('App icon verified')
           PYANDROID
 
@@ -108,6 +107,17 @@ jobs:
 
       - name: Build release APK
         run: flutter build apk --release
+
+      - name: Verify Internet permission in final APK
+        run: |
+          APK=build/app/outputs/flutter-apk/app-release.apk
+          AAPT=$(find "$ANDROID_HOME/build-tools" -name aapt -type f | sort -V | tail -1)
+
+          test -n "$AAPT"
+          "$AAPT" dump permissions "$APK" | tee permissions.txt
+
+          grep -q 'android.permission.INTERNET' permissions.txt
+          echo "SUCCESS: Final APK has Internet permission"
 
       - name: Rename APK
         run: |
