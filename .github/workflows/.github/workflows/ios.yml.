@@ -1,0 +1,16 @@
+name: iOS unsigned build check
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  ios:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+      - run: flutter create --platforms=ios --project-name mafiflow_mobile --org com.mafistudio .
+      - run: flutter pub get
+      - run: flutter build ios --no-codesign
