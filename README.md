@@ -40,3 +40,12 @@ License: MIT © Mafistudio.
 To find the icon step in GitHub: Actions → Android APK → latest run → android job → Generate official app icon / Verify icon resources.
 
 Do not uninstall the existing app if you want to keep locally stored data.
+
+
+## Beta 4 improvements
+- Launcher icon has transparent outside corners while keeping the original MafiFlow emblem.
+- Built-in, localized expense categories; add/remove personal categories and hide/restore defaults.
+- Charts: income/expense donut, category percentages, six-month bar/line comparison and month-over-month percentages.
+- Translated opening balance, currency, category management and chart labels in ES/EN/FR/DE/BN.
+- Saved data continues using `mafiflow_data` in SharedPreferences; update without uninstalling.
+- Android workflow generates only Android icons; iOS icons should be generated in the separate iOS build from the same `assets/app_icon.png`.

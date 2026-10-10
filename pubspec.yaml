@@ -1,7 +1,7 @@
 name: mafiflow_mobile
 description: MafiFlow Mobile for Android and iOS
 publish_to: none
-version: 1.0.0+3
+version: 1.0.0+4
 
 environment:
   sdk: '>=3.3.0 <4.0.0'
@@ -23,6 +23,7 @@ flutter_launcher_icons:
   android: true
   ios: false
   image_path: assets/app_icon.png
+  remove_alpha_ios: true
 
 flutter:
   uses-material-design: true
