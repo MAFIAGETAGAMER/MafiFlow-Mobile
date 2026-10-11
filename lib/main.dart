@@ -87,6 +87,35 @@ class _MafiFlowAppState extends State<MafiFlowApp> {
   bool ready=false; int tab=0;
   String t(String key)=> featureLabels['${data['language']}']?[key] ?? improvedLabels['${data['language']}']?[key] ?? (additionalLabels[data['language']] ?? labels[data['language']] ?? labels['es']!)[key] ?? labels['en']![key] ?? key;
   String catName(String category)=>categoryTranslations[category]?['${data['language']}']??category;
+  String transactionTitle(Map<String,dynamic> x) {
+    final category='${x['category']??x['type']??''}';
+    final type='${x['type']??''}';
+    if(type=='Ingreso extra' && (category=='Ingreso extra'||category.isEmpty))return t('extra');
+    if(type=='Ingreso mensual' && (category=='Ingreso mensual'||category.isEmpty))return t('monthIncome');
+    if(type=='Pago mensual' && (category=='Pago mensual'||category.isEmpty))return t('payment');
+    if(type=='Gasto' && (category=='Gasto'||category.isEmpty))return t('expense');
+    return catName(category);
+  }
+  String transactionNote(Map<String,dynamic> x) {
+    final note='${x['note']??''}';
+    if(note.startsWith('Ingreso automático (') && note.endsWith(')')){
+      final frequency=note.substring('Ingreso automático ('.length,note.length-1);
+      final label= <String,String>{'daily':'incomeFrequencyDaily','weekly':'incomeFrequencyWeekly','biweekly':'incomeFrequencyBiweekly','monthly':'incomeFrequencyMonthly'}[frequency];
+      final lang='${data['language']??'es'}';
+      const translations={
+        'es':['Ingreso automático','Diariamente','Semanalmente','Cada 2 semanas','Mensualmente'],
+        'en':['Automatic income','Daily','Weekly','Every 2 weeks','Monthly'],
+        'fr':['Revenu automatique','Chaque jour','Chaque semaine','Toutes les 2 semaines','Chaque mois'],
+        'de':['Automatische Einnahme','Täglich','Wöchentlich','Alle 2 Wochen','Monatlich'],
+        'bn':['স্বয়ংক্রিয় আয়','প্রতিদিন','প্রতি সপ্তাহে','প্রতি ২ সপ্তাহে','প্রতি মাসে']
+      };
+      final words=translations[lang]??translations['es']!;
+      final index={'daily':1,'weekly':2,'biweekly':3,'monthly':4}[frequency];
+      return '${words[0]} (${index==null?frequency:words[index]})';
+    }
+    if(note=='Ingreso mensual automático')return t('monthIncome');
+    return note;
+  }
   List<String> get categories {final hidden=(data['hidden_categories'] as List? ?? []).map((e)=>'$e').toSet();final custom=(data['custom_categories'] as List? ?? []).map((e)=>'$e').where((e)=>e.trim().isNotEmpty);return {...defaultCategories,...custom}.where((e)=>!hidden.contains(e)).toList();}
   String chartMode='pie';
   List<Map<String,dynamic>> get tx=>records(data['transactions']);
@@ -269,7 +298,7 @@ class _MafiFlowAppState extends State<MafiFlowApp> {
       ...tx.reversed.take(7).map(tile),
     ]);
   }
-  Widget tile(Map<String,dynamic> x,{VoidCallback? onDelete}) {final plus=x['type']=='Ingreso mensual'||x['type']=='Ingreso extra';return card(ListTile(contentPadding:EdgeInsets.zero,title:Text(catName('${x['category']??x['type']}')),subtitle:Text('${x['date']??''}\n${x['note']??''}'),isThreeLine:true,trailing:Row(mainAxisSize:MainAxisSize.min,children:[Text('${plus?'+':'−'}${money(number(x['amount']))}',style:TextStyle(color:plus?green:expenseRed,fontWeight:FontWeight.bold)),if(onDelete!=null)IconButton(onPressed:onDelete,icon:const Icon(Icons.delete_outline))])));}
+  Widget tile(Map<String,dynamic> x,{VoidCallback? onDelete}) {final plus=x['type']=='Ingreso mensual'||x['type']=='Ingreso extra';return card(ListTile(contentPadding:EdgeInsets.zero,title:Text(transactionTitle(x)),subtitle:Text('${x['date']??''}\n${transactionNote(x)}'),isThreeLine:true,trailing:Row(mainAxisSize:MainAxisSize.min,children:[Text('${plus?'+':'−'}${money(number(x['amount']))}',style:TextStyle(color:plus?green:expenseRed,fontWeight:FontWeight.bold)),if(onDelete!=null)IconButton(onPressed:onDelete,icon:const Icon(Icons.delete_outline))])));}
   Future<void> addTransaction() async {
     String type='Gasto';
     String category=categories.isEmpty?'Otro':categories.first;
