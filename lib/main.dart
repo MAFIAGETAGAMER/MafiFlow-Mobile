@@ -13,7 +13,7 @@ const expenseRed = Color(0xFFE76F6F);
 const defaults = <String, dynamic>{
   'monthly_income': 0.0, 'rent': 0.0, 'savings_goal': 0.0,
   'income_frequency': 'monthly', 'income_start_date': '', 'income_processed_dates': [],
-  'monthly_savings': 0.0, 'savings_saved': 0.0, 'savings_processed_months': [],
+  'monthly_savings': 0.0, 'savings_saved': 0.0, 'savings_processed_months': [], 'savings_history': [],
   'transactions': [], 'monthly_payments': [], 'processed_months': [],
   'custom_categories': [], 'hidden_categories': [], 'ai_provider': 'OpenAI', 'ai_api_key': '',
   'ai_model': '', 'ai_base_url': '', 'ai_history': [], 'setup_completed': false, 'currency': 'USD', 'opening_balance': 0.0,
@@ -202,6 +202,11 @@ class _MafiFlowAppState extends State<MafiFlowApp> {
     if(goal<=0||monthly<=0||saved>=goal)return;
     final amount=min(monthly,goal-saved);
     data['savings_saved']=saved+amount;
+    final history=records(data['savings_history']);
+    if(!history.any((e)=>e['month']==month)){
+      history.add({'month':month,'date':'$month-01','amount':amount});
+      data['savings_history']=history;
+    }
     data['savings_last_amount']=amount;
     data['savings_last_month']=month;
     done.add(month);
@@ -351,23 +356,181 @@ class _MafiFlowAppState extends State<MafiFlowApp> {
         }),
         IconButton(icon:const Icon(Icons.delete_outline),onPressed:(){final list=payments;list.removeAt(e.key);data['monthly_payments']=list;save();})
       ]))))]);
+  String statsPeriod='monthly';
+  DateTime _periodStart(DateTime date, String period) {
+    final d=DateTime(date.year,date.month,date.day);
+    if(period=='daily')return d;
+    if(period=='weekly')return d.subtract(Duration(days:d.weekday-1));
+    if(period=='yearly')return DateTime(d.year);
+    return DateTime(d.year,d.month);
+  }
+  DateTime _periodShift(DateTime date,int shift,String period) {
+    if(period=='daily')return DateTime(date.year,date.month,date.day+shift);
+    if(period=='weekly')return DateTime(date.year,date.month,date.day+7*shift);
+    if(period=='yearly')return DateTime(date.year+shift);
+    return DateTime(date.year,date.month+shift);
+  }
+  String _periodLabel(DateTime d,String period) {
+    if(period=='daily')return '${d.day}/${d.month}';
+    if(period=='weekly')return '${d.day}/${d.month}';
+    if(period=='yearly')return '${d.year}';
+    return '${d.month}/${d.year%100}';
+  }
+  ({double income,double spent,double savings}) _periodTotals(DateTime start,DateTime end) {
+    double income=0,spent=0,savings=0;
+    for(final item in tx){
+      final raw='${item['date']??''}';
+      final date=DateTime.tryParse(raw);
+      if(date==null||date.isBefore(start)||!date.isBefore(end))continue;
+      final amount=number(item['amount']);
+      switch('${item['type']}'){
+        case 'Ingreso mensual':
+        case 'Ingreso extra': income+=amount;break;
+        case 'Gasto':
+        case 'Pago mensual': spent+=amount;break;
+      }
+    }
+    for(final entry in records(data['savings_history'])){
+      final date=DateTime.tryParse('${entry['date']??''}');
+      if(date!=null&&!date.isBefore(start)&&date.isBefore(end)){
+        savings+=number(entry['amount']);
+      }
+    }
+    return (income:income,spent:spent,savings:savings);
+  }
+  String _analyticsText(String key){
+    final lang='${data['language']??'es'}';
+    const dictionary=<String,Map<String,String>>{
+      'es':{'overview':'Resumen del período','savings':'Ahorro reservado','available':'Saldo disponible','balanceTrend':'Evolución del saldo','savingsTrend':'Ahorro acumulado','recurring':'Pagos recurrentes realizados','ordinary':'Otros gastos','net':'Resultado del período','savingsGoal':'Progreso de la meta','legacy':'El ahorro anterior a esta versión no tiene fechas individuales; se incluye en el total, no en las barras históricas.','noHistory':'Todavía no hay reservas de ahorro fechadas.'},
+      'en':{'overview':'Period summary','savings':'Reserved savings','available':'Available balance','balanceTrend':'Balance over time','savingsTrend':'Accumulated savings','recurring':'Recurring payments made','ordinary':'Other expenses','net':'Period net','savingsGoal':'Savings goal progress','legacy':'Older savings have no individual dates; they are included in the total but not historical bars.','noHistory':'No dated savings deposits yet.'},
+      'fr':{'overview':'Résumé de la période','savings':'Épargne réservée','available':'Solde disponible','balanceTrend':'Évolution du solde','savingsTrend':'Épargne cumulée','recurring':'Paiements récurrents effectués','ordinary':'Autres dépenses','net':'Résultat de la période','savingsGoal':'Progression de l’objectif','legacy':'L’épargne ancienne ne possède pas de dates individuelles.','noHistory':'Pas encore d’épargne datée.'},
+      'de':{'overview':'Zeitraumübersicht','savings':'Zurückgelegtes Spargeld','available':'Verfügbares Guthaben','balanceTrend':'Kontostandverlauf','savingsTrend':'Angespartes Guthaben','recurring':'Ausgeführte Dauerzahlungen','ordinary':'Sonstige Ausgaben','net':'Ergebnis des Zeitraums','savingsGoal':'Sparziel-Fortschritt','legacy':'Ältere Ersparnisse haben keine einzelnen Datumsangaben.','noHistory':'Noch keine datierten Sparbeträge.'},
+      'bn':{'overview':'সময়ের সারাংশ','savings':'সঞ্চিত অর্থ','available':'উপলব্ধ ব্যালেন্স','balanceTrend':'ব্যালেন্সের পরিবর্তন','savingsTrend':'মোট সঞ্চয়','recurring':'নিয়মিত পেমেন্ট','ordinary':'অন্যান্য খরচ','net':'সময়ের ফলাফল','savingsGoal':'সঞ্চয় লক্ষ্যের অগ্রগতি','legacy':'পুরোনো সঞ্চয়ের পৃথক তারিখ নেই।','noHistory':'এখনো তারিখসহ সঞ্চয় নেই।'}
+    };
+    return dictionary[lang]?[key]??dictionary['es']![key]??key;
+  }
+  double _balanceAt(DateTime exclusiveEnd){
+    double balance=number(data['opening_balance']);
+    for(final item in tx){
+      final date=DateTime.tryParse('${item['date']??''}');
+      if(date==null||!date.isBefore(exclusiveEnd))continue;
+      final amount=number(item['amount']);
+      if(item['type']=='Ingreso mensual'||item['type']=='Ingreso extra')balance+=amount;
+      if(item['type']=='Gasto'||item['type']=='Pago mensual')balance-=amount;
+    }
+    // Older reserved savings are undated; treat them as an opening adjustment,
+    // without inventing historical deposits or counting them as expenses.
+    final history=records(data['savings_history']);
+    final dated=history.fold<double>(0,(v,e)=>v+number(e['amount']));
+    balance-=max(0.0,number(data['savings_saved'])-dated);
+    for(final entry in history){
+      final date=DateTime.tryParse('${entry['date']??''}');
+      if(date!=null&&date.isBefore(exclusiveEnd))balance-=number(entry['amount']);
+    }
+    return balance;
+  }
+  double _savingsAt(DateTime exclusiveEnd){
+    final history=records(data['savings_history']);
+    final dated=history.fold<double>(0,(v,e)=>v+number(e['amount']));
+    double value=max(0.0,number(data['savings_saved'])-dated);
+    for(final entry in history){
+      final date=DateTime.tryParse('${entry['date']??''}');
+      if(date!=null&&date.isBefore(exclusiveEnd))value+=number(entry['amount']);
+    }
+    return value;
+  }
   Widget stats(){
-    final v=totals(),prior=totals(previousMonth());
+    final now=DateTime.now();
+    final current=_periodStart(now,statsPeriod);
+    final priorStart=_periodShift(current,-1,statsPeriod);
+    final v=_periodTotals(current,_periodShift(current,1,statsPeriod));
+    final prior=_periodTotals(priorStart,current);
     final income=max(0.0,v.income),spent=max(0.0,v.spent),sum=income+spent;
     final byCategory=<String,double>{};
-    for(final x in tx.where((e)=>'${e['date']}'.startsWith(monthNow())&&(e['type']=='Gasto'||e['type']=='Pago mensual'))){
-      final n=max(0.0,number(x['amount']));if(n>0)byCategory.update('${x['category']}',(old)=>old+n,ifAbsent:()=>n);
+    for(final x in tx){
+      final date=DateTime.tryParse('${x['date']??''}');
+      if(date==null||date.isBefore(current)||!date.isBefore(_periodShift(current,1,statsPeriod)))continue;
+      if(x['type']!='Gasto'&&x['type']!='Pago mensual')continue;
+      final n=max(0.0,number(x['amount']));
+      if(n>0)byCategory.update('${x['category']??'Otro'}',(old)=>old+n,ifAbsent:()=>n);
     }
     final colors=[green,expenseRed,Colors.blue,Colors.orange,Colors.purple,Colors.teal,Colors.pink,Colors.amber,Colors.indigo];
     final items=byCategory.entries.toList()..sort((a,b)=>b.value.compareTo(a.value));
     final expenseTotal=items.fold<double>(0,(v,e)=>v+e.value);
-    final lastMonths=List.generate(6,(i)=>monthAt(i-5));
-    final series=lastMonths.map((m)=>totals(m)).toList();
+    final count=statsPeriod=='daily'?7:statsPeriod=='weekly'?8:6;
+    final periods=List.generate(count,(i)=>_periodShift(current,i-count+1,statsPeriod));
+    final series=periods.map((p)=>_periodTotals(p,_periodShift(p,1,statsPeriod))).toList();
     final maxValue=max(1.0,series.fold<double>(0,(v,e)=>max(v,max(e.income,e.spent))))*1.2;
+    final periodEnd=_periodShift(current,1,statsPeriod);
+    double recurring=0,ordinary=0;
+    for(final item in tx){
+      final date=DateTime.tryParse('${item['date']??''}');
+      if(date==null||date.isBefore(current)||!date.isBefore(periodEnd))continue;
+      if(item['type']=='Pago mensual')recurring+=number(item['amount']);
+      if(item['type']=='Gasto')ordinary+=number(item['amount']);
+    }
+    final goal=number(data['savings_goal']);
+    final saved=number(data['savings_saved']);
+    final savingsRatio=goal>0?(saved/goal).clamp(0.0,1.0).toDouble():0.0;
+    final balanceSeries=periods.map((p)=>_balanceAt(_periodShift(p,1,statsPeriod))).toList();
+    final savingSeries=periods.map((p)=>_savingsAt(_periodShift(p,1,statsPeriod))).toList();
+    final hasSavingsHistory=records(data['savings_history']).isNotEmpty;
+    final language='${data['language']??'es'}';
+    final names=<String,List<String>>{
+      'es':['Diario','Semanal','Mensual','Anual'],
+      'en':['Daily','Weekly','Monthly','Yearly'],
+      'fr':['Jour','Semaine','Mois','Année'],
+      'de':['Tag','Woche','Monat','Jahr'],
+      'bn':['দৈনিক','সাপ্তাহিক','মাসিক','বার্ষিক']
+    };
+    final periodNames=names[language]??names['es']!;
     return scroll([
       heading(t('stats')),
+      card(Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
+        Text(language=='es'?'Ver estadísticas por':language=='en'?'View statistics by':'Periodo / Period',style:Theme.of(dialogContext).textTheme.titleMedium),
+        const SizedBox(height:10),
+        Wrap(spacing:6,runSpacing:6,children:List.generate(4,(i){
+          final key=['daily','weekly','monthly','yearly'][i];
+          return ChoiceChip(label:Text(periodNames[i]),selected:statsPeriod==key,onSelected:(_)=>setState(()=>statsPeriod=key));
+        }))
+      ])),
       stat(t('income'),v.income,Icons.arrow_upward,green),
       stat(t('expenses'),v.spent,Icons.arrow_downward,expenseRed),
+      heading(_analyticsText('overview')),
+      stat(_analyticsText('available'),_balanceAt(periodEnd),Icons.account_balance_wallet,green),
+      stat(_analyticsText('savings'),v.savings,Icons.savings,Colors.blue),
+      stat(_analyticsText('recurring'),recurring,Icons.event_repeat,Colors.orange),
+      stat(_analyticsText('ordinary'),ordinary,Icons.shopping_cart_outlined,expenseRed),
+      stat(_analyticsText('net'),v.income-v.spent-v.savings,Icons.account_balance,Colors.teal),
+      card(Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
+        Text(_analyticsText('savingsGoal'),style:Theme.of(dialogContext).textTheme.titleMedium),
+        const SizedBox(height:10),
+        Text('${money(saved)} / ${money(goal)}'),
+        const SizedBox(height:8),LinearProgressIndicator(value:savingsRatio),
+        const SizedBox(height:8),Text('${(savingsRatio*100).toStringAsFixed(1)}%'),
+      ])),
+      card(Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
+        Text(_analyticsText('balanceTrend'),style:Theme.of(dialogContext).textTheme.titleMedium),
+        const SizedBox(height:16),
+        SizedBox(height:190,child:LineChart(LineChartData(
+          minY:min(0.0,balanceSeries.reduce(min))*1.1,
+          maxY:max(1.0,balanceSeries.reduce(max))*1.1,
+          lineBarsData:[LineChartBarData(spots:List.generate(count,(i)=>FlSpot(i.toDouble(),balanceSeries[i])),color:green,barWidth:3,isCurved:false,dotData:const FlDotData(show:true))],
+          titlesData:FlTitlesData(topTitles:const AxisTitles(sideTitles:SideTitles(showTitles:false)),rightTitles:const AxisTitles(sideTitles:SideTitles(showTitles:false)),leftTitles:const AxisTitles(sideTitles:SideTitles(showTitles:false)),bottomTitles:AxisTitles(sideTitles:SideTitles(showTitles:true,reservedSize:30,interval:1,getTitlesWidget:(value,meta){final i=value.toInt();return i>=0&&i<count&&value==i.toDouble()?Text(_periodLabel(periods[i],statsPeriod),style:const TextStyle(fontSize:9)):const SizedBox.shrink();})))
+        ))),
+      ])),
+      card(Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
+        Text(_analyticsText('savingsTrend'),style:Theme.of(dialogContext).textTheme.titleMedium),
+        const SizedBox(height:12),
+        if(!hasSavingsHistory)Text(_analyticsText('noHistory')) else SizedBox(height:190,child:LineChart(LineChartData(
+          minY:0,maxY:max(1.0,savingSeries.reduce(max))*1.2,
+          lineBarsData:[LineChartBarData(spots:List.generate(count,(i)=>FlSpot(i.toDouble(),savingSeries[i])),color:Colors.blue,barWidth:3,isCurved:false,dotData:const FlDotData(show:true))],
+          titlesData:FlTitlesData(topTitles:const AxisTitles(sideTitles:SideTitles(showTitles:false)),rightTitles:const AxisTitles(sideTitles:SideTitles(showTitles:false)),leftTitles:const AxisTitles(sideTitles:SideTitles(showTitles:false)),bottomTitles:AxisTitles(sideTitles:SideTitles(showTitles:true,reservedSize:30,interval:1,getTitlesWidget:(value,meta){final i=value.toInt();return i>=0&&i<count&&value==i.toDouble()?Text(_periodLabel(periods[i],statsPeriod),style:const TextStyle(fontSize:9)):const SizedBox.shrink();})))
+        ))),
+        if(number(data['savings_saved'])>records(data['savings_history']).fold<double>(0,(a,e)=>a+number(e['amount']))+0.001)
+          Padding(padding:const EdgeInsets.only(top:8),child:Text(_analyticsText('legacy'),style:Theme.of(dialogContext).textTheme.bodySmall)),
+      ])),
+
       card(Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
         Text(t('monthComparison'),style:Theme.of(dialogContext).textTheme.titleMedium),const SizedBox(height:12),
         Row(children:[Expanded(child:Text(t('spendingChange'))),Text(percentChange(v.spent,prior.spent),style:TextStyle(color:v.spent>prior.spent?expenseRed:green,fontWeight:FontWeight.bold))]),
@@ -387,12 +550,12 @@ class _MafiFlowAppState extends State<MafiFlowApp> {
         const SizedBox(height:18),
         SizedBox(height:230,child:chartMode=='line'?LineChart(LineChartData(
           minY:0,maxY:maxValue,
-          lineBarsData:[LineChartBarData(spots:List.generate(6,(i)=>FlSpot(i.toDouble(),series[i].income)),color:green,isCurved:true,barWidth:3,dotData:const FlDotData(show:true)),LineChartBarData(spots:List.generate(6,(i)=>FlSpot(i.toDouble(),series[i].spent)),color:expenseRed,isCurved:true,barWidth:3,dotData:const FlDotData(show:true))],
-          titlesData:FlTitlesData(topTitles:const AxisTitles(sideTitles:SideTitles(showTitles:false)),rightTitles:const AxisTitles(sideTitles:SideTitles(showTitles:false)),leftTitles:const AxisTitles(sideTitles:SideTitles(showTitles:false)),bottomTitles:AxisTitles(sideTitles:SideTitles(showTitles:true,reservedSize:30,getTitlesWidget:(value,meta){final i=value.toInt();return i>=0&&i<6?Text(lastMonths[i].substring(5),style:const TextStyle(fontSize:10)):const SizedBox.shrink();})))
+          lineBarsData:[LineChartBarData(spots:List.generate(count,(i)=>FlSpot(i.toDouble(),series[i].income)),color:green,isCurved:false,barWidth:3,dotData:const FlDotData(show:true)),LineChartBarData(spots:List.generate(count,(i)=>FlSpot(i.toDouble(),series[i].spent)),color:expenseRed,isCurved:false,barWidth:3,dotData:const FlDotData(show:true))],
+          titlesData:FlTitlesData(topTitles:const AxisTitles(sideTitles:SideTitles(showTitles:false)),rightTitles:const AxisTitles(sideTitles:SideTitles(showTitles:false)),leftTitles:const AxisTitles(sideTitles:SideTitles(showTitles:false)),bottomTitles:AxisTitles(sideTitles:SideTitles(showTitles:true,reservedSize:30,interval:1,getTitlesWidget:(value,meta){final i=value.toInt();return i>=0&&i<count&&value==i.toDouble()?Text(_periodLabel(periods[i],statsPeriod),style:const TextStyle(fontSize:9)):const SizedBox.shrink();})))
         )):BarChart(BarChartData(
           maxY:maxValue,alignment:BarChartAlignment.spaceAround,
-          barGroups:List.generate(6,(i)=>BarChartGroupData(x:i,barRods:[BarChartRodData(toY:series[i].income,color:green,width:9),BarChartRodData(toY:series[i].spent,color:expenseRed,width:9)])),
-          titlesData:FlTitlesData(topTitles:const AxisTitles(sideTitles:SideTitles(showTitles:false)),rightTitles:const AxisTitles(sideTitles:SideTitles(showTitles:false)),leftTitles:const AxisTitles(sideTitles:SideTitles(showTitles:false)),bottomTitles:AxisTitles(sideTitles:SideTitles(showTitles:true,reservedSize:30,getTitlesWidget:(value,meta){final i=value.toInt();return i>=0&&i<6?Text(lastMonths[i].substring(5),style:const TextStyle(fontSize:10)):const SizedBox.shrink();})))
+          barGroups:List.generate(count,(i)=>BarChartGroupData(x:i,barRods:[BarChartRodData(toY:series[i].income,color:green,width:statsPeriod=='weekly'?7:9),BarChartRodData(toY:series[i].spent,color:expenseRed,width:statsPeriod=='weekly'?7:9)])),
+          titlesData:FlTitlesData(topTitles:const AxisTitles(sideTitles:SideTitles(showTitles:false)),rightTitles:const AxisTitles(sideTitles:SideTitles(showTitles:false)),leftTitles:const AxisTitles(sideTitles:SideTitles(showTitles:false)),bottomTitles:AxisTitles(sideTitles:SideTitles(showTitles:true,reservedSize:30,interval:1,getTitlesWidget:(value,meta){final i=value.toInt();return i>=0&&i<count&&value==i.toDouble()?Text(_periodLabel(periods[i],statsPeriod),style:const TextStyle(fontSize:9)):const SizedBox.shrink();})))
         ))),
         Row(mainAxisAlignment:MainAxisAlignment.center,children:[Icon(Icons.circle,color:green,size:12),const SizedBox(width:4),Text(t('income')),const SizedBox(width:18),Icon(Icons.circle,color:expenseRed,size:12),const SizedBox(width:4),Text(t('expenses'))])
       ])),
