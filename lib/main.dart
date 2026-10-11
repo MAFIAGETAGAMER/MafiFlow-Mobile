@@ -12,6 +12,7 @@ const green = Color(0xFF168657);
 const expenseRed = Color(0xFFE76F6F);
 const defaults = <String, dynamic>{
   'monthly_income': 0.0, 'rent': 0.0, 'savings_goal': 0.0,
+  'income_frequency': 'monthly', 'income_start_date': '', 'income_processed_dates': [],
   'monthly_savings': 0.0, 'savings_saved': 0.0, 'savings_processed_months': [],
   'transactions': [], 'monthly_payments': [], 'processed_months': [],
   'custom_categories': [], 'hidden_categories': [], 'ai_provider': 'OpenAI', 'ai_api_key': '',
@@ -83,11 +84,62 @@ class _MafiFlowAppState extends State<MafiFlowApp> {
     await persistWithoutRebuild();
     if (mounted) refreshAfterDialog();
   }
-  void applyMonthly(){ final month=monthNow();final done=List<String>.from((data['processed_months'] as List?) ?? []);if(done.contains(month))return;
-    final list=tx;final stamp='$month-01 09:00:00'; final income=number(data['monthly_income']);
-    if(income>0)list.add({'date':stamp,'type':'Ingreso mensual','category':'Ingreso mensual','amount':income,'note':'Ingreso mensual automático','auto_month':month});
-    for(final p in payments){if(p['active']==false)continue;final v=number(p['amount']);if(v>0)list.add({'date':stamp,'type':'Pago mensual','category':'Pago mensual','amount':v,'note':'${p['name']??''}','auto_month':month});}
-    done.add(month);data['transactions']=list;data['processed_months']=done;save();
+  // Register income on its actual payday, independently of opening balance.
+  // Monthly legacy data keeps its existing first-of-month behavior.
+  void applyIncomeSchedule(){
+    final amount=number(data['monthly_income']);
+    if(amount<=0)return;
+    final now=DateTime.now();
+    final today=DateTime(now.year,now.month,now.day);
+    final freq='${data['income_frequency']??'monthly'}';
+    final raw='${data['income_start_date']??''}';
+    DateTime start=DateTime(now.year,now.month,1);
+    if(raw.isNotEmpty){
+      final parsed=DateTime.tryParse(raw);
+      if(parsed!=null)start=DateTime(parsed.year,parsed.month,parsed.day);
+    }
+    if(start.isAfter(today))return;
+    final done=List<String>.from((data['income_processed_dates'] as List?)??[]);
+    final seen=done.toSet();
+    final list=tx;
+    // Do not duplicate income from the old monthly processing system.
+    final existing=list.where((x)=>x['type']=='Ingreso mensual' && x['auto_month']!=null).map((x)=>'${x['auto_month']}-01').toSet();
+    DateTime cursor=start;
+    int count=0;
+    while(!cursor.isAfter(today) && count<3660){
+      final key='${cursor.year}-${cursor.month.toString().padLeft(2,'0')}-${cursor.day.toString().padLeft(2,'0')}';
+      if(!seen.contains(key) && !existing.contains(key)){
+        list.add({'date':'$key 09:00:00','type':'Ingreso mensual','category':'Ingreso mensual','amount':amount,'note':'Ingreso automático ($freq)','auto_income_date':key});
+        done.add(key);seen.add(key);
+      }
+      count++;
+      if(freq=='daily'){cursor=cursor.add(const Duration(days:1));}
+      else if(freq=='weekly'){cursor=cursor.add(const Duration(days:7));}
+      else if(freq=='biweekly'){cursor=cursor.add(const Duration(days:14));}
+      else {
+        final nextMonth=DateTime(cursor.year,cursor.month+1,1);
+        final lastDay=DateTime(nextMonth.year,nextMonth.month+1,0).day;
+        cursor=DateTime(nextMonth.year,nextMonth.month,start.day>lastDay?lastDay:start.day);
+      }
+    }
+    data['transactions']=list;
+    data['income_processed_dates']=done;
+  }
+  void applyMonthly(){
+    final month=monthNow();
+    final done=List<String>.from((data['processed_months'] as List?)??[]);
+    if(!done.contains(month)){
+      final list=tx;
+      final stamp='$month-01 09:00:00';
+      for(final p in payments){
+        if(p['active']==false)continue;
+        final v=number(p['amount']);
+        if(v>0)list.add({'date':stamp,'type':'Pago mensual','category':'Pago mensual','amount':v,'note':'${p['name']??''}','auto_month':month});
+      }
+      done.add(month);data['transactions']=list;data['processed_months']=done;
+    }
+    applyIncomeSchedule();
+    save();
   }
   // Reserve savings once per calendar month, without exceeding the target.
   // This is a budgeting reserve, not a real bank transfer.
@@ -110,7 +162,13 @@ class _MafiFlowAppState extends State<MafiFlowApp> {
   double savingsForMonth(String month)=>data['savings_last_month']==month?number(data['savings_last_amount']):0;
   ({double income,double spent,double balance}) totals([String? month]) {final list=tx.where((e)=>'${e['date']??''}'.startsWith(month??monthNow()));double inc=0,spent=0;
     for(final e in list){final v=number(e['amount']);if(e['type']=='Ingreso extra'||e['type']=='Ingreso mensual'){inc+=v;}else if(e['type']=='Gasto'||e['type']=='Pago mensual'){spent+=v;}}
-    return (income:inc,spent:spent,balance:number(data['opening_balance'])+inc-spent-savingsForMonth(month??monthNow())); }
+    // The opening balance is the real amount already owned at setup.
+    // It is never an income transaction. Available balance is cumulative,
+    // while income and expenses above are month-specific for statistics.
+    final all=tx;
+    final totalIncome=all.where((e)=>e['type']=='Ingreso mensual'||e['type']=='Ingreso extra').fold<double>(0,(sum,e)=>sum+number(e['amount']));
+    final totalSpent=all.where((e)=>e['type']=='Gasto'||e['type']=='Pago mensual').fold<double>(0,(sum,e)=>sum+number(e['amount']));
+    return (income:inc,spent:spent,balance:number(data['opening_balance'])+totalIncome-totalSpent-number(data['savings_saved'])); }
   void notice(String text){messengerKey.currentState?.showSnackBar(SnackBar(content:Text(text)));}
   Widget card(Widget child)=>Card(margin:const EdgeInsets.symmetric(vertical:7),child:Padding(padding:const EdgeInsets.all(16),child:child));
   Widget heading(String text)=>Padding(padding:const EdgeInsets.only(top:12,bottom:8),child:Text(text,style:TextStyle(fontSize:22,fontWeight:FontWeight.bold,color:dark?Colors.white:Colors.black87)));
@@ -221,7 +279,7 @@ class _MafiFlowAppState extends State<MafiFlowApp> {
       ]))
     ]);
   }
-  Widget settings(){final opening=TextEditingController(text:'${data['opening_balance']??0}');String currency='${data['currency']??'USD'}';final income=TextEditingController(text:'${data['monthly_income']}'),goal=TextEditingController(text:'${data['savings_goal']}'),monthlySavings=TextEditingController(text:'${data['monthly_savings']??0}'),api=TextEditingController(text:'${data['ai_api_key']}'),model=TextEditingController(text:'${data['ai_model']}'),url=TextEditingController(text:'${data['ai_base_url']}');String provider='${data['ai_provider']}';String lang='${data['language']}';String theme='${data['theme']}';return StatefulBuilder(builder:(c,update)=>scroll([heading(t('settings')),card(Column(children:[TextField(controller:income,keyboardType:TextInputType.number,decoration:InputDecoration(labelText:t('monthIncome'))),TextField(controller:goal,keyboardType:TextInputType.number,decoration:InputDecoration(labelText:t('goal'))),TextField(controller:monthlySavings,keyboardType:TextInputType.number,decoration:const InputDecoration(labelText:'Ahorro mensual / Monthly savings')),const Text('Cada mes se reservará automáticamente esta cantidad del dinero disponible, hasta alcanzar la meta.'),TextField(controller:opening,keyboardType:TextInputType.number,decoration:InputDecoration(labelText:t('opening'))),DropdownButtonFormField<String>(initialValue:currency,decoration:InputDecoration(labelText:t('currency')),items:['USD','CAD','EUR','GBP','BDT'].map((v)=>DropdownMenuItem(value:v,child:Text(v))).toList(),onChanged:(v)=>update(()=>currency=v??'USD')),DropdownButtonFormField<String>(value:['OpenAI','NVIDIA','Custom'].contains(provider)?provider:'OpenAI',decoration:InputDecoration(labelText:t('provider')),items:['OpenAI','NVIDIA','Custom'].map((e)=>DropdownMenuItem(value:e,child:Text(e))).toList(),onChanged:(v)=>update(()=>provider=v!)),TextField(controller:api,obscureText:true,decoration:InputDecoration(labelText:t('key'))),TextField(controller:model,decoration:InputDecoration(labelText:t('model'))),TextField(controller:url,decoration:InputDecoration(labelText:t('custom'))),DropdownButtonFormField<String>(value:const ['es','en','fr','de','bn'].contains(lang)?lang:'es',decoration:InputDecoration(labelText:t('language')),items:const [DropdownMenuItem(value:'es',child:Text('Español')),DropdownMenuItem(value:'en',child:Text('English')),DropdownMenuItem(value:'fr',child:Text('Français')),DropdownMenuItem(value:'de',child:Text('Deutsch')),DropdownMenuItem(value:'bn',child:Text('বাংলা'))],onChanged:(v)=>update(()=>lang=v!)),DropdownButtonFormField<String>(value:theme,decoration:InputDecoration(labelText:t('theme')),items:[DropdownMenuItem(value:'light',child:Text(t('light'))),DropdownMenuItem(value:'dark',child:Text(t('dark')))],onChanged:(v)=>update(()=>theme=v!)),const SizedBox(height:12),FilledButton(onPressed:(){final inc=double.tryParse(income.text.replaceAll(',','.'));final sav=double.tryParse(goal.text.replaceAll(',','.'));final monthlySav=double.tryParse(monthlySavings.text.replaceAll(',','.'));if(inc==null||sav==null||monthlySav==null||monthlySav<0||!monthlySav.isFinite||double.tryParse(opening.text.replaceAll(',','.'))==null||!inc.isFinite||!sav.isFinite||inc<0||sav<0){notice(t('invalid'));return;}data.addAll({'monthly_income':inc,'savings_goal':sav,'monthly_savings':monthlySav,'opening_balance':double.parse(opening.text.replaceAll(',','.')),'currency':currency,'ai_provider':provider,'ai_api_key':api.text.trim(),'ai_model':model.text.trim(),'ai_base_url':url.text.trim(),'language':lang,'theme':theme});applySavingsMonthly();save();notice(t('settingsSaved'));},child:Text(t('save')))])),card(Column(children:[ListTile(leading:const Icon(Icons.category_outlined),title:Text(t('manageCategories')),onTap:manageCategories),ListTile(leading:const Icon(Icons.copy),title:Text(t('export')),onTap:()async{final copy=Map<String,dynamic>.from(data)..['ai_api_key']='';await Clipboard.setData(ClipboardData(text:const JsonEncoder.withIndent('  ').convert(copy)));notice(t('backup'));}),ListTile(leading:const Icon(Icons.download),title:Text(t('import')),onTap:()async{final clipboard=await Clipboard.getData('text/plain');try{final obj=jsonDecode(clipboard?.text??'');if(obj is! Map||obj['transactions'] is! List)throw const FormatException();if(!mounted)return;final ok=await showDialog<bool>(context:context,builder:(d)=>AlertDialog(title:Text(t('import')),content:Text(t('confirm')),actions:[TextButton(onPressed:()=>Navigator.pop(d,false),child:Text(t('cancel'))),FilledButton(onPressed:()=>Navigator.pop(d,true),child:Text(t('yes')))]));if(ok==true){data={...defaults,...Map<String,dynamic>.from(obj)};await save();notice(t('imported'));}}catch(_){notice(t('invalid'));}})]))]));}
+  Widget settings(){final opening=TextEditingController(text:'${data['opening_balance']??0}');String currency='${data['currency']??'USD'}';final income=TextEditingController(text:'${data['monthly_income']}'),goal=TextEditingController(text:'${data['savings_goal']}'),monthlySavings=TextEditingController(text:'${data['monthly_savings']??0}'),api=TextEditingController(text:'${data['ai_api_key']}'),model=TextEditingController(text:'${data['ai_model']}'),url=TextEditingController(text:'${data['ai_base_url']}');String incomeFrequency='${data['income_frequency']??'monthly'}';String provider='${data['ai_provider']}';String lang='${data['language']}';String theme='${data['theme']}';return StatefulBuilder(builder:(c,update)=>scroll([heading(t('settings')),card(Column(children:[TextField(controller:income,keyboardType:TextInputType.number,decoration:const InputDecoration(labelText:'Cantidad que recibes por pago')),DropdownButtonFormField<String>(value:['daily','weekly','biweekly','monthly'].contains(incomeFrequency)?incomeFrequency:'monthly',decoration:const InputDecoration(labelText:'¿Cada cuánto cobras?'),items:const [DropdownMenuItem(value:'daily',child:Text('Diariamente')),DropdownMenuItem(value:'weekly',child:Text('Semanalmente')),DropdownMenuItem(value:'biweekly',child:Text('Cada 2 semanas')),DropdownMenuItem(value:'monthly',child:Text('Mensualmente'))],onChanged:(v)=>update(()=>incomeFrequency=v??'monthly')),TextField(controller:goal,keyboardType:TextInputType.number,decoration:InputDecoration(labelText:t('goal'))),TextField(controller:monthlySavings,keyboardType:TextInputType.number,decoration:const InputDecoration(labelText:'Ahorro mensual / Monthly savings')),const Text('Cada mes se reservará automáticamente esta cantidad del dinero disponible, hasta alcanzar la meta.'),TextField(controller:opening,keyboardType:TextInputType.number,decoration:InputDecoration(labelText:t('opening'))),DropdownButtonFormField<String>(initialValue:currency,decoration:InputDecoration(labelText:t('currency')),items:['USD','CAD','EUR','GBP','BDT'].map((v)=>DropdownMenuItem(value:v,child:Text(v))).toList(),onChanged:(v)=>update(()=>currency=v??'USD')),DropdownButtonFormField<String>(value:['OpenAI','NVIDIA','Custom'].contains(provider)?provider:'OpenAI',decoration:InputDecoration(labelText:t('provider')),items:['OpenAI','NVIDIA','Custom'].map((e)=>DropdownMenuItem(value:e,child:Text(e))).toList(),onChanged:(v)=>update(()=>provider=v!)),TextField(controller:api,obscureText:true,decoration:InputDecoration(labelText:t('key'))),TextField(controller:model,decoration:InputDecoration(labelText:t('model'))),TextField(controller:url,decoration:InputDecoration(labelText:t('custom'))),DropdownButtonFormField<String>(value:const ['es','en','fr','de','bn'].contains(lang)?lang:'es',decoration:InputDecoration(labelText:t('language')),items:const [DropdownMenuItem(value:'es',child:Text('Español')),DropdownMenuItem(value:'en',child:Text('English')),DropdownMenuItem(value:'fr',child:Text('Français')),DropdownMenuItem(value:'de',child:Text('Deutsch')),DropdownMenuItem(value:'bn',child:Text('বাংলা'))],onChanged:(v)=>update(()=>lang=v!)),DropdownButtonFormField<String>(value:theme,decoration:InputDecoration(labelText:t('theme')),items:[DropdownMenuItem(value:'light',child:Text(t('light'))),DropdownMenuItem(value:'dark',child:Text(t('dark')))],onChanged:(v)=>update(()=>theme=v!)),const SizedBox(height:12),FilledButton(onPressed:(){final inc=double.tryParse(income.text.replaceAll(',','.'));final sav=double.tryParse(goal.text.replaceAll(',','.'));final monthlySav=double.tryParse(monthlySavings.text.replaceAll(',','.'));if(inc==null||sav==null||monthlySav==null||monthlySav<0||!monthlySav.isFinite||double.tryParse(opening.text.replaceAll(',','.'))==null||!inc.isFinite||!sav.isFinite||inc<0||sav<0){notice(t('invalid'));return;}data.addAll({'monthly_income':inc,'income_frequency':incomeFrequency,'income_start_date':incomeFrequency=='${data['income_frequency']??'monthly'}'?data['income_start_date']:DateTime.now().toIso8601String().substring(0,10),'savings_goal':sav,'monthly_savings':monthlySav,'opening_balance':double.parse(opening.text.replaceAll(',','.')),'currency':currency,'ai_provider':provider,'ai_api_key':api.text.trim(),'ai_model':model.text.trim(),'ai_base_url':url.text.trim(),'language':lang,'theme':theme});applySavingsMonthly();save();notice(t('settingsSaved'));},child:Text(t('save')))])),card(Column(children:[ListTile(leading:const Icon(Icons.category_outlined),title:Text(t('manageCategories')),onTap:manageCategories),ListTile(leading:const Icon(Icons.copy),title:Text(t('export')),onTap:()async{final copy=Map<String,dynamic>.from(data)..['ai_api_key']='';await Clipboard.setData(ClipboardData(text:const JsonEncoder.withIndent('  ').convert(copy)));notice(t('backup'));}),ListTile(leading:const Icon(Icons.download),title:Text(t('import')),onTap:()async{final clipboard=await Clipboard.getData('text/plain');try{final obj=jsonDecode(clipboard?.text??'');if(obj is! Map||obj['transactions'] is! List)throw const FormatException();if(!mounted)return;final ok=await showDialog<bool>(context:context,builder:(d)=>AlertDialog(title:Text(t('import')),content:Text(t('confirm')),actions:[TextButton(onPressed:()=>Navigator.pop(d,false),child:Text(t('cancel'))),FilledButton(onPressed:()=>Navigator.pop(d,true),child:Text(t('yes')))]));if(ok==true){data={...defaults,...Map<String,dynamic>.from(obj)};await save();notice(t('imported'));}}catch(_){notice(t('invalid'));}})]))]));}
 }
 
 class Advisor extends StatefulWidget {final Map<String,dynamic> data;final String lang;final Future<void> Function() onSave;const Advisor({super.key,required this.data,required this.lang,required this.onSave});@override State<Advisor> createState()=>_AdvisorState();}
@@ -254,7 +312,7 @@ class WelcomeWizard extends StatefulWidget {
   @override State<WelcomeWizard> createState()=>_WelcomeWizardState();
 }
 class _WelcomeWizardState extends State<WelcomeWizard> {
-  int step=0;String language='es',currency='USD';
+  int step=0;String language='es',currency='USD',incomeFrequency='monthly';DateTime payday=DateTime(DateTime.now().year,DateTime.now().month+1,1);
   final income=TextEditingController(text:'0'),opening=TextEditingController(text:'0'),goal=TextEditingController(text:'0'),monthlySavings=TextEditingController(text:'0');
   final name=TextEditingController(),payment=TextEditingController();
   final List<Map<String,dynamic>> bills=[];
@@ -279,11 +337,11 @@ class _WelcomeWizardState extends State<WelcomeWizard> {
       bills.add({'name':pendingName,'amount':pendingAmount,'active':true});
       name.clear();payment.clear();
     }
-    widget.onComplete({'language':language,'currency':currency,'monthly_income':parse(income.text)??0,'opening_balance':parse(opening.text)??0,'savings_goal':parse(goal.text)??0,'monthly_savings':parse(monthlySavings.text)??0,'monthly_payments':bills});
+    widget.onComplete({'language':language,'currency':currency,'monthly_income':parse(income.text)??0,'income_frequency':incomeFrequency,'income_start_date':payday.toIso8601String().substring(0,10),'opening_balance':parse(opening.text)??0,'savings_goal':parse(goal.text)??0,'monthly_savings':parse(monthlySavings.text)??0,'monthly_payments':bills});
   }
   @override Widget build(BuildContext context)=>Scaffold(appBar:AppBar(title:const Text('MafiFlow Mobile')),body:Center(child:ConstrainedBox(constraints:const BoxConstraints(maxWidth:540),child:ListView(padding:const EdgeInsets.all(24),children:[LinearProgressIndicator(value:(step+1)/4),const SizedBox(height:28),Text(word('¡Bienvenido a MafiFlow!','Welcome to MafiFlow!','Bienvenue sur MafiFlow !','Willkommen bei MafiFlow!','MafiFlow-তে স্বাগতম!'),style:Theme.of(context).textTheme.headlineSmall),const SizedBox(height:22),
     if(step==0)...[Text(word('Elige idioma y moneda','Choose language and currency','Choisissez langue et devise','Sprache und Währung wählen','ভাষা ও মুদ্রা নির্বাচন করুন')),DropdownButtonFormField<String>(initialValue:language,items:const [DropdownMenuItem(value:'es',child:Text('Español')),DropdownMenuItem(value:'en',child:Text('English')),DropdownMenuItem(value:'fr',child:Text('Français')),DropdownMenuItem(value:'de',child:Text('Deutsch')),DropdownMenuItem(value:'bn',child:Text('বাংলা'))],onChanged:(v)=>setState(()=>language=v??'es')),DropdownButtonFormField<String>(initialValue:currency,items:['USD','CAD','EUR','GBP','BDT'].map((v)=>DropdownMenuItem(value:v,child:Text(v))).toList(),onChanged:(v)=>setState(()=>currency=v??'USD'))],
-    if(step==1)...[Text(word('Configura tus finanzas iniciales','Set up your starting finances','Configurez vos finances','Finanzen einrichten','প্রাথমিক অর্থ সেট করুন')),TextField(controller:income,keyboardType:const TextInputType.numberWithOptions(decimal:true),decoration:InputDecoration(labelText:word('Ingreso mensual','Monthly income','Revenu mensuel','Monatseinkommen','মাসিক আয়'))),TextField(controller:opening,keyboardType:const TextInputType.numberWithOptions(decimal:true),decoration:InputDecoration(labelText:word('Saldo actual','Current balance','Solde actuel','Aktueller Kontostand','বর্তমান ব্যালেন্স')))],
+    if(step==1)...[Text(word('Configura tus finanzas iniciales','Set up your starting finances','Configurez vos finances','Finanzen einrichten','প্রাথমিক অর্থ সেট করুন')),TextField(controller:income,keyboardType:const TextInputType.numberWithOptions(decimal:true),decoration:InputDecoration(labelText:word('Cantidad que recibes por pago','Amount per payday','Montant par paie','Betrag pro Zahlung','প্রতি বেতনের পরিমাণ'))),DropdownButtonFormField<String>(value:incomeFrequency,decoration:InputDecoration(labelText:word('¿Cada cuánto cobras?','How often are you paid?','À quelle fréquence êtes-vous payé ?','Wie oft wirst du bezahlt?','কত ঘন ঘন বেতন পান?')),items:[DropdownMenuItem(value:'daily',child:Text(word('Diariamente','Daily','Chaque jour','Täglich','প্রতিদিন'))),DropdownMenuItem(value:'weekly',child:Text(word('Semanalmente','Weekly','Chaque semaine','Wöchentlich','প্রতি সপ্তাহে'))),DropdownMenuItem(value:'biweekly',child:Text(word('Cada 2 semanas','Every 2 weeks','Toutes les 2 semaines','Alle 2 Wochen','প্রতি ২ সপ্তাহে'))),DropdownMenuItem(value:'monthly',child:Text(word('Mensualmente','Monthly','Chaque mois','Monatlich','প্রতি মাসে')))],onChanged:(v)=>setState(()=>incomeFrequency=v??'monthly')),const SizedBox(height:8),ListTile(contentPadding:EdgeInsets.zero,title:Text(word('Fecha del próximo cobro','Next payday','Date du premier paiement','Erster Zahltag','প্রথম বেতনের তারিখ')),subtitle:Text('${payday.year}-${payday.month.toString().padLeft(2,'0')}-${payday.day.toString().padLeft(2,'0')}'),trailing:const Icon(Icons.calendar_today),onTap:()async{final chosen=await showDatePicker(context:context,initialDate:payday,firstDate:DateTime(2020),lastDate:DateTime(2100));if(chosen!=null)setState(()=>payday=chosen);}),TextField(controller:opening,keyboardType:const TextInputType.numberWithOptions(decimal:true),decoration:InputDecoration(labelText:word('Saldo disponible ahora (no se suma al salario)','Available balance now (not added to salary)','Solde actuel (pas un revenu)','Aktueller Kontostand (kein Einkommen)','বর্তমান ব্যালেন্স')))],
     if(step==2)...[TextField(controller:monthlySavings,keyboardType:const TextInputType.numberWithOptions(decimal:true),decoration:InputDecoration(labelText:word('¿Cuánto quieres ahorrar al mes?','How much to save monthly?','Combien épargner par mois ?','Monatlicher Sparbetrag','মাসিক সঞ্চয়'))),TextField(controller:goal,keyboardType:const TextInputType.numberWithOptions(decimal:true),decoration:InputDecoration(labelText:word('¿Cuál es tu objetivo total de ahorro?','Total savings target','Objectif total d’épargne','Gesamtsparziel','মোট সঞ্চয়ের লক্ষ্য'))),const SizedBox(height:12),Text(word('Mensualmente este dinero se descontará automáticamente del dinero disponible hasta llegar a tu objetivo.','Each month this amount will automatically be deducted from available money until you reach your goal.','Chaque mois, ce montant sera déduit de votre solde disponible jusqu’à votre objectif.','Jeden Monat wird dieser Betrag vom verfügbaren Geld abgezogen, bis das Ziel erreicht ist.','লক্ষ্য পূরণ না হওয়া পর্যন্ত প্রতি মাসে উপলব্ধ অর্থ থেকে এই পরিমাণ বাদ যাবে।'))],
     if(step==3)...[Text(word('Agrega tus gastos fijos (opcional)','Add recurring expenses (optional)','Ajoutez les dépenses récurrentes','Wiederkehrende Ausgaben','নিয়মিত খরচ যোগ করুন')),TextField(controller:name,decoration:InputDecoration(labelText:word('Nombre del gasto','Expense name','Nom de la dépense','Ausgabenname','খরচের নাম'))),TextField(controller:payment,keyboardType:const TextInputType.numberWithOptions(decimal:true),decoration:InputDecoration(labelText:word('Cantidad mensual','Monthly amount','Montant mensuel','Monatlicher Betrag','মাসিক পরিমাণ'))),TextButton.icon(onPressed:(){final n=parse(payment.text);if(name.text.trim().isEmpty||n==null||n<=0)return;setState((){bills.add({'name':name.text.trim(),'amount':n,'active':true});name.clear();payment.clear();});},icon:const Icon(Icons.add),label:Text(word('Agregar pago','Add payment','Ajouter','Hinzufügen','যোগ করুন'))),...bills.map((b)=>ListTile(title:Text('${b['name']}'),trailing:Text('${b['amount']}')))],
     const SizedBox(height:30),Row(children:[if(step>0)TextButton(onPressed:()=>setState(()=>step--),child:Text(word('Atrás','Back','Retour','Zurück','পেছনে'))),const Spacer(),FilledButton(onPressed:next,child:Text(step==3?word('Empezar','Get started','Commencer','Starten','শুরু করুন'):word('Continuar','Continue','Continuer','Weiter','চালিয়ে যান')))])]))));
