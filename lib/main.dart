@@ -125,19 +125,55 @@ class _MafiFlowAppState extends State<MafiFlowApp> {
     data['transactions']=list;
     data['income_processed_dates']=done;
   }
+  // Each recurring bill is charged on its own selected day.
+  // A payment created today starts no earlier than today, avoiding retroactive charges.
   void applyMonthly(){
-    final month=monthNow();
-    final done=List<String>.from((data['processed_months'] as List?)??[]);
-    if(!done.contains(month)){
-      final list=tx;
-      final stamp='$month-01 09:00:00';
-      for(final p in payments){
-        if(p['active']==false)continue;
-        final v=number(p['amount']);
-        if(v>0)list.add({'date':stamp,'type':'Pago mensual','category':'Pago mensual','amount':v,'note':'${p['name']??''}','auto_month':month});
+    final now=DateTime.now();
+    final today=DateTime(now.year,now.month,now.day);
+    final list=tx;
+    final bills=payments;
+    bool changed=false;
+    for(int i=0;i<bills.length;i++){
+      final p=bills[i];
+      // Stable ID is necessary to prevent duplicates when bills share a name.
+      if(p['id']==null){p['id']='bill_${DateTime.now().microsecondsSinceEpoch}_$i';changed=true;}
+      final id='${p['id']}';
+      final rawDay=(number(p['day']).toInt());
+      final day=rawDay.clamp(1,31);
+      if(p['day']!=day){p['day']=day;changed=true;}
+      if(p['start_date']==null){
+        // Old bills were already charged on the 1st by the legacy system.
+        // Preserve that history; begin the new schedule today.
+        p['start_date']='${today.year}-${today.month.toString().padLeft(2,'0')}-${today.day.toString().padLeft(2,'0')}';
+        changed=true;
       }
-      done.add(month);data['transactions']=list;data['processed_months']=done;
+      if(p['active']==false)continue;
+      final amount=number(p['amount']);
+      if(amount<=0)continue;
+      final start=DateTime.tryParse('${p['start_date']}');
+      if(start==null)continue;
+      final first=DateTime(start.year,start.month,1);
+      for(int offset=0;offset<1200;offset++){
+        final month=DateTime(first.year,first.month+offset,1);
+        if(month.isAfter(today))break;
+        final lastDay=DateTime(month.year,month.month+1,0).day;
+        final due=DateTime(month.year,month.month,day>lastDay?lastDay:day);
+        if(due.isBefore(DateTime(start.year,start.month,start.day))||due.isAfter(today))continue;
+        final monthKey='${month.year}-${month.month.toString().padLeft(2,'0')}';
+        final dueKey='${due.year}-${due.month.toString().padLeft(2,'0')}-${due.day.toString().padLeft(2,'0')}';
+        final exists=list.any((x)=>x['type']=='Pago mensual' &&
+          (x['auto_bill_id']==id && x['auto_month']==monthKey ||
+          // Prevent a second charge when migrating legacy monthly bills.
+          (x['auto_bill_id']==null && x['auto_month']==monthKey && x['note']=='${p['name']??''}')));
+        if(!exists){
+          list.add({'date':'$dueKey 09:00:00','type':'Pago mensual',
+            'category':'Pago mensual','amount':amount,'note':'${p['name']??''}',
+            'auto_month':monthKey,'auto_bill_id':id});
+          changed=true;
+        }
+      }
     }
+    if(changed){data['monthly_payments']=bills;data['transactions']=list;}
     applyIncomeSchedule();
     save();
   }
@@ -222,11 +258,51 @@ class _MafiFlowAppState extends State<MafiFlowApp> {
   }
   Widget transactions()=>scroll([heading(t('moves')),FilledButton.icon(onPressed:addTransaction,icon:const Icon(Icons.add),label:Text(t('add'))),...tx.reversed.map((x)=>tile(x,onDelete:(){final list=tx;// compare values as records() creates copies
     final i=list.indexWhere((v)=>v['date']==x['date']&&v['amount']==x['amount']&&v['type']==x['type']&&v['note']==x['note']);if(i>=0)list.removeAt(i);data['transactions']=list;save();}))]);
-  Future<void> addPayment()async {final name=TextEditingController(),amount=TextEditingController();await showDialog(context:dialogContext,builder:(c)=>AlertDialog(title:Text(t('newPayment')),content:Column(mainAxisSize:MainAxisSize.min,children:[TextField(controller:name,decoration:InputDecoration(labelText:t('name'))),TextField(controller:amount,keyboardType:const TextInputType.numberWithOptions(decimal:true),decoration:InputDecoration(labelText:t('amount')))]),actions:[TextButton(onPressed:()=>Navigator.pop(c),child:Text(t('cancel'))),FilledButton(onPressed:(){final n=double.tryParse(amount.text.replaceAll(',','.'));if(n==null||n<=0||!n.isFinite||name.text.trim().isEmpty){notice(t('invalid'));return;}data['monthly_payments']=[...payments,{'name':name.text.trim(),'amount':n,'active':true}];Navigator.pop(c);save();},child:Text(t('save')))]));}
-  Widget monthly()=>scroll([heading(t('monthly')),FilledButton.icon(onPressed:addPayment,icon:const Icon(Icons.add),label:Text(t('newPayment'))),...payments.asMap().entries.map((e)=>card(ListTile(title:Text('${e.value['name']}'),subtitle:Text(money(number(e.value['amount']))),leading:Switch(value:e.value['active']!=false,onChanged:(v){final list=payments;list[e.key]['active']=v;data['monthly_payments']=list;save();}),trailing:IconButton(icon:const Icon(Icons.delete_outline),onPressed:(){final list=payments;list.removeAt(e.key);data['monthly_payments']=list;save();})) ))]);
-  String previousMonth(){final now=DateTime.now();final prev=DateTime(now.year,now.month-1,1);return '${prev.year}-${prev.month.toString().padLeft(2,'0')}';}
-  String monthAt(int offset){final d=DateTime.now();final x=DateTime(d.year,d.month+offset,1);return '${x.year}-${x.month.toString().padLeft(2,'0')}';}
-  String percentChange(double now,double prev){if(prev==0)return now==0?'0%':'—';final change=(now-prev)/prev*100;return '${change>=0?'+':''}${change.toStringAsFixed(1)}%';}
+  Future<void> addPayment()async {
+    final name=TextEditingController(),amount=TextEditingController();
+    int selectedDay=DateTime.now().day;
+    await showDialog(context:dialogContext,builder:(c)=>StatefulBuilder(builder:(context,setDialogState)=>AlertDialog(
+      title:Text(t('newPayment')),
+      content:SingleChildScrollView(child:Column(mainAxisSize:MainAxisSize.min,children:[
+        TextField(controller:name,decoration:InputDecoration(labelText:t('name'))),
+        TextField(controller:amount,keyboardType:const TextInputType.numberWithOptions(decimal:true),decoration:InputDecoration(labelText:t('amount'))),
+        DropdownButtonFormField<int>(value:selectedDay,
+          decoration:InputDecoration(labelText:'${data['language']}'=='es'?'Día de cobro mensual':'Monthly charge day'),
+          items:List.generate(31,(i)=>DropdownMenuItem(value:i+1,child:Text('${i+1}'))),
+          onChanged:(v)=>setDialogState(()=>selectedDay=v??1)),
+        const SizedBox(height:8),
+        Text('Se descontará automáticamente en ese día de cada mes.',style:Theme.of(context).textTheme.bodySmall),
+      ])),
+      actions:[TextButton(onPressed:()=>Navigator.pop(c),child:Text(t('cancel'))),
+        FilledButton(onPressed:(){final n=double.tryParse(amount.text.replaceAll(',','.'));
+          if(n==null||n<=0||!n.isFinite||name.text.trim().isEmpty){notice(t('invalid'));return;}
+          final today=DateTime.now().toIso8601String().substring(0,10);
+          data['monthly_payments']=[...payments,{'name':name.text.trim(),'amount':n,'active':true,'day':selectedDay,'start_date':today}];
+          Navigator.pop(c);applyMonthly();
+        },child:Text(t('save')))])));
+    name.dispose();amount.dispose();
+  }
+  Widget monthly()=>scroll([heading(t('monthly')),
+    FilledButton.icon(onPressed:addPayment,icon:const Icon(Icons.add),label:Text(t('newPayment'))),
+    ...payments.asMap().entries.map((e)=>card(ListTile(
+      title:Text('${e.value['name']}'),
+      subtitle:Text('${money(number(e.value['amount']))} · Día ${number(e.value['day']).toInt().clamp(1,31)} de cada mes'),
+      leading:Switch(value:e.value['active']!=false,onChanged:(v){final list=payments;list[e.key]['active']=v;if(v)list[e.key]['start_date']=DateTime.now().toIso8601String().substring(0,10);data['monthly_payments']=list;applyMonthly();}),
+      trailing:Row(mainAxisSize:MainAxisSize.min,children:[
+        IconButton(tooltip:'Cambiar día',icon:const Icon(Icons.edit_calendar_outlined),onPressed:()async{
+          int selectedDay=number(e.value['day']).toInt().clamp(1,31);
+          await showDialog(context:dialogContext,builder:(c)=>StatefulBuilder(builder:(context,setDialogState)=>AlertDialog(
+            title:const Text('Día de cobro mensual'),
+            content:DropdownButtonFormField<int>(value:selectedDay,items:List.generate(31,(i)=>DropdownMenuItem(value:i+1,child:Text('${i+1}'))),onChanged:(v)=>setDialogState(()=>selectedDay=v??1)),
+            actions:[TextButton(onPressed:()=>Navigator.pop(c),child:Text(t('cancel'))),FilledButton(onPressed:(){
+              final list=payments;list[e.key]['day']=selectedDay;
+              // A changed day takes effect from today, without replaying past months.
+              list[e.key]['start_date']=DateTime.now().toIso8601String().substring(0,10);
+              data['monthly_payments']=list;Navigator.pop(c);applyMonthly();
+            },child:Text(t('save')))])));
+        }),
+        IconButton(icon:const Icon(Icons.delete_outline),onPressed:(){final list=payments;list.removeAt(e.key);data['monthly_payments']=list;save();})
+      ]))))]);
   Widget stats(){
     final v=totals(),prior=totals(previousMonth());
     final income=max(0.0,v.income),spent=max(0.0,v.spent),sum=income+spent;
@@ -314,6 +390,7 @@ class WelcomeWizard extends StatefulWidget {
 class _WelcomeWizardState extends State<WelcomeWizard> {
   int step=0;String language='es',currency='USD',incomeFrequency='monthly';DateTime payday=DateTime(DateTime.now().year,DateTime.now().month+1,1);
   final income=TextEditingController(text:'0'),opening=TextEditingController(text:'0'),goal=TextEditingController(text:'0'),monthlySavings=TextEditingController(text:'0');
+  int paymentDay=DateTime.now().day;
   final name=TextEditingController(),payment=TextEditingController();
   final List<Map<String,dynamic>> bills=[];
   @override void dispose(){income.dispose();opening.dispose();goal.dispose();monthlySavings.dispose();name.dispose();payment.dispose();super.dispose();}
@@ -334,8 +411,8 @@ class _WelcomeWizardState extends State<WelcomeWizard> {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text(word('Completa el nombre y el importe del pago, o deja ambos vacíos.','Complete the payment name and amount, or leave both blank.','Complétez le paiement ou laissez les deux champs vides.','Zahlung vervollständigen oder beide Felder leer lassen.','পেমেন্টের তথ্য পূরণ করুন বা ফাঁকা রাখুন।'))));
         return;
       }
-      bills.add({'name':pendingName,'amount':pendingAmount,'active':true});
-      name.clear();payment.clear();
+      bills.add({'name':pendingName,'amount':pendingAmount,'active':true,'day':paymentDay,'start_date':DateTime.now().toIso8601String().substring(0,10)});
+      name.clear();payment.clear();paymentDay=DateTime.now().day;
     }
     widget.onComplete({'language':language,'currency':currency,'monthly_income':parse(income.text)??0,'income_frequency':incomeFrequency,'income_start_date':payday.toIso8601String().substring(0,10),'opening_balance':parse(opening.text)??0,'savings_goal':parse(goal.text)??0,'monthly_savings':parse(monthlySavings.text)??0,'monthly_payments':bills});
   }
@@ -343,7 +420,7 @@ class _WelcomeWizardState extends State<WelcomeWizard> {
     if(step==0)...[Text(word('Elige idioma y moneda','Choose language and currency','Choisissez langue et devise','Sprache und Währung wählen','ভাষা ও মুদ্রা নির্বাচন করুন')),DropdownButtonFormField<String>(initialValue:language,items:const [DropdownMenuItem(value:'es',child:Text('Español')),DropdownMenuItem(value:'en',child:Text('English')),DropdownMenuItem(value:'fr',child:Text('Français')),DropdownMenuItem(value:'de',child:Text('Deutsch')),DropdownMenuItem(value:'bn',child:Text('বাংলা'))],onChanged:(v)=>setState(()=>language=v??'es')),DropdownButtonFormField<String>(initialValue:currency,items:['USD','CAD','EUR','GBP','BDT'].map((v)=>DropdownMenuItem(value:v,child:Text(v))).toList(),onChanged:(v)=>setState(()=>currency=v??'USD'))],
     if(step==1)...[Text(word('Configura tus finanzas iniciales','Set up your starting finances','Configurez vos finances','Finanzen einrichten','প্রাথমিক অর্থ সেট করুন')),TextField(controller:income,keyboardType:const TextInputType.numberWithOptions(decimal:true),decoration:InputDecoration(labelText:word('Cantidad que recibes por pago','Amount per payday','Montant par paie','Betrag pro Zahlung','প্রতি বেতনের পরিমাণ'))),DropdownButtonFormField<String>(value:incomeFrequency,decoration:InputDecoration(labelText:word('¿Cada cuánto cobras?','How often are you paid?','À quelle fréquence êtes-vous payé ?','Wie oft wirst du bezahlt?','কত ঘন ঘন বেতন পান?')),items:[DropdownMenuItem(value:'daily',child:Text(word('Diariamente','Daily','Chaque jour','Täglich','প্রতিদিন'))),DropdownMenuItem(value:'weekly',child:Text(word('Semanalmente','Weekly','Chaque semaine','Wöchentlich','প্রতি সপ্তাহে'))),DropdownMenuItem(value:'biweekly',child:Text(word('Cada 2 semanas','Every 2 weeks','Toutes les 2 semaines','Alle 2 Wochen','প্রতি ২ সপ্তাহে'))),DropdownMenuItem(value:'monthly',child:Text(word('Mensualmente','Monthly','Chaque mois','Monatlich','প্রতি মাসে')))],onChanged:(v)=>setState(()=>incomeFrequency=v??'monthly')),const SizedBox(height:8),ListTile(contentPadding:EdgeInsets.zero,title:Text(word('Fecha del próximo cobro','Next payday','Date du premier paiement','Erster Zahltag','প্রথম বেতনের তারিখ')),subtitle:Text('${payday.year}-${payday.month.toString().padLeft(2,'0')}-${payday.day.toString().padLeft(2,'0')}'),trailing:const Icon(Icons.calendar_today),onTap:()async{final chosen=await showDatePicker(context:context,initialDate:payday,firstDate:DateTime(2020),lastDate:DateTime(2100));if(chosen!=null)setState(()=>payday=chosen);}),TextField(controller:opening,keyboardType:const TextInputType.numberWithOptions(decimal:true),decoration:InputDecoration(labelText:word('Saldo disponible ahora (no se suma al salario)','Available balance now (not added to salary)','Solde actuel (pas un revenu)','Aktueller Kontostand (kein Einkommen)','বর্তমান ব্যালেন্স')))],
     if(step==2)...[TextField(controller:monthlySavings,keyboardType:const TextInputType.numberWithOptions(decimal:true),decoration:InputDecoration(labelText:word('¿Cuánto quieres ahorrar al mes?','How much to save monthly?','Combien épargner par mois ?','Monatlicher Sparbetrag','মাসিক সঞ্চয়'))),TextField(controller:goal,keyboardType:const TextInputType.numberWithOptions(decimal:true),decoration:InputDecoration(labelText:word('¿Cuál es tu objetivo total de ahorro?','Total savings target','Objectif total d’épargne','Gesamtsparziel','মোট সঞ্চয়ের লক্ষ্য'))),const SizedBox(height:12),Text(word('Mensualmente este dinero se descontará automáticamente del dinero disponible hasta llegar a tu objetivo.','Each month this amount will automatically be deducted from available money until you reach your goal.','Chaque mois, ce montant sera déduit de votre solde disponible jusqu’à votre objectif.','Jeden Monat wird dieser Betrag vom verfügbaren Geld abgezogen, bis das Ziel erreicht ist.','লক্ষ্য পূরণ না হওয়া পর্যন্ত প্রতি মাসে উপলব্ধ অর্থ থেকে এই পরিমাণ বাদ যাবে।'))],
-    if(step==3)...[Text(word('Agrega tus gastos fijos (opcional)','Add recurring expenses (optional)','Ajoutez les dépenses récurrentes','Wiederkehrende Ausgaben','নিয়মিত খরচ যোগ করুন')),TextField(controller:name,decoration:InputDecoration(labelText:word('Nombre del gasto','Expense name','Nom de la dépense','Ausgabenname','খরচের নাম'))),TextField(controller:payment,keyboardType:const TextInputType.numberWithOptions(decimal:true),decoration:InputDecoration(labelText:word('Cantidad mensual','Monthly amount','Montant mensuel','Monatlicher Betrag','মাসিক পরিমাণ'))),TextButton.icon(onPressed:(){final n=parse(payment.text);if(name.text.trim().isEmpty||n==null||n<=0)return;setState((){bills.add({'name':name.text.trim(),'amount':n,'active':true});name.clear();payment.clear();});},icon:const Icon(Icons.add),label:Text(word('Agregar pago','Add payment','Ajouter','Hinzufügen','যোগ করুন'))),...bills.map((b)=>ListTile(title:Text('${b['name']}'),trailing:Text('${b['amount']}')))],
+    if(step==3)...[Text(word('Agrega tus gastos fijos (opcional)','Add recurring expenses (optional)','Ajoutez les dépenses récurrentes','Wiederkehrende Ausgaben','নিয়মিত খরচ যোগ করুন')),TextField(controller:name,decoration:InputDecoration(labelText:word('Nombre del gasto','Expense name','Nom de la dépense','Ausgabenname','খরচের নাম'))),TextField(controller:payment,keyboardType:const TextInputType.numberWithOptions(decimal:true),decoration:InputDecoration(labelText:word('Cantidad mensual','Monthly amount','Montant mensuel','Monatlicher Betrag','মাসিক পরিমাণ'))),DropdownButtonFormField<int>(value:paymentDay,decoration:InputDecoration(labelText:word('Día de cobro mensual','Monthly charge day','Jour du prélèvement','Monatlicher Abbuchungstag','মাসিক পেমেন্টের দিন')),items:List.generate(31,(i)=>DropdownMenuItem(value:i+1,child:Text('${i+1}'))),onChanged:(v)=>setState(()=>paymentDay=v??1)),const SizedBox(height:8),TextButton.icon(onPressed:(){final n=parse(payment.text);if(name.text.trim().isEmpty||n==null||n<=0)return;setState((){bills.add({'name':name.text.trim(),'amount':n,'active':true,'day':paymentDay,'start_date':DateTime.now().toIso8601String().substring(0,10)});name.clear();payment.clear();paymentDay=DateTime.now().day;});},icon:const Icon(Icons.add),label:Text(word('Agregar pago','Add payment','Ajouter','Hinzufügen','যোগ করুন'))),...bills.map((b)=>ListTile(title:Text('${b['name']}'),trailing:Text('${b['amount']}')))],
     const SizedBox(height:30),Row(children:[if(step>0)TextButton(onPressed:()=>setState(()=>step--),child:Text(word('Atrás','Back','Retour','Zurück','পেছনে'))),const Spacer(),FilledButton(onPressed:next,child:Text(step==3?word('Empezar','Get started','Commencer','Starten','শুরু করুন'):word('Continuar','Continue','Continuer','Weiter','চালিয়ে যান')))])]))));
 }
 
