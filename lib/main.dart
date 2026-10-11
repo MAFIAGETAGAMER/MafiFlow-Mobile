@@ -224,7 +224,39 @@ class _MafiFlowAppState extends State<MafiFlowApp> {
   @override Widget build(BuildContext context){final lang='${data['language']}';activeCurrency='${data['currency']??'USD'}';return MaterialApp(navigatorKey:navKey,scaffoldMessengerKey:messengerKey,debugShowCheckedModeBanner:false,title:'MafiFlow Mobile',theme:ThemeData(colorScheme:ColorScheme.fromSeed(seedColor:green),useMaterial3:true),darkTheme:ThemeData(colorScheme:ColorScheme.fromSeed(seedColor:green,brightness:Brightness.dark),useMaterial3:true),themeMode:dark?ThemeMode.dark:ThemeMode.light,home:!ready?const Scaffold(body:Center(child:CircularProgressIndicator())):data['setup_completed']!=true?WelcomeWizard(onComplete:(v) async {data.addAll(v);data['setup_completed']=true;applyMonthly();applySavingsMonthly();await save();}):Builder(builder:(shellContext)=>Scaffold(appBar:AppBar(title:Row(children:[Image.asset('assets/logo.png',height:34),const SizedBox(width:10),const Text('MafiFlow Mobile')]),actions:[IconButton(tooltip:t('calculator'),icon:const Icon(Icons.calculate_outlined),onPressed:()=>showDialog(context:dialogContext,builder:(_)=>const CalculatorDialog())),IconButton(icon:const Icon(Icons.settings),onPressed:()=>setState(()=>tab=5))]),body:SafeArea(child:LayoutBuilder(builder:(ctx,box){final content=IndexedStack(index:tab,children:[home(),transactions(),monthly(),stats(),Advisor(data:data,lang:lang,onSave:save),settings()]);return content;})),bottomNavigationBar:NavigationBar(selectedIndex:tab,onDestinationSelected:(v)=>setState(()=>tab=v),labelBehavior:NavigationDestinationLabelBehavior.onlyShowSelected,destinations:[NavigationDestination(icon:const Icon(Icons.home_outlined),label:t('home')),NavigationDestination(icon:const Icon(Icons.receipt_long),label:t('moves')),NavigationDestination(icon:const Icon(Icons.event_repeat),label:t('monthly')),NavigationDestination(icon:const Icon(Icons.pie_chart_outline),label:t('stats')),NavigationDestination(icon:const Icon(Icons.smart_toy_outlined),label:t('ai')),NavigationDestination(icon:const Icon(Icons.settings_outlined),label:t('settings'))]))));}
   Widget scroll(List<Widget> widgets)=>ListView(padding:const EdgeInsets.all(16),children:widgets);
   Widget stat(String label,double value,IconData icon,Color color)=>card(Row(children:[Icon(icon,color:color),const SizedBox(width:14),Expanded(child:Text(label)),Text(money(value),style:TextStyle(fontWeight:FontWeight.bold,fontSize:19,color:color))]));
-  Widget home(){final v=totals();return scroll([heading(t('home')),stat(t('balance'),v.balance,Icons.account_balance_wallet,v.balance<0?expenseRed:green),stat(t('income'),v.income,Icons.trending_up,green),stat(t('expenses'),v.spent,Icons.trending_down,expenseRed),stat(t('savings'),number(data['savings_saved']),Icons.savings,Colors.blue),card(Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text('${t('savings')}: ${money(number(data['savings_saved']))} / ${money(number(data['savings_goal']))}'),const SizedBox(height:8),LinearProgressIndicator(value:number(data['savings_goal'])>0?(number(data['savings_saved'])/number(data['savings_goal'])).clamp(0.0,1.0):0)])),heading(t('recents')),...tx.reversed.take(7).map(tile)]);}
+  Widget home(){
+    final v=totals();
+    final saved=number(data['savings_saved']);
+    final goal=number(data['savings_goal']);
+    final monthlySaving=number(data['monthly_savings']);
+    final progress=goal>0?(saved/goal).clamp(0.0,1.0).toDouble():0.0;
+    return scroll([
+      heading(t('home')),
+      stat(t('balance'),v.balance,Icons.account_balance_wallet,v.balance<0?expenseRed:green),
+      stat(t('income'),v.income,Icons.trending_up,green),
+      stat(t('expenses'),v.spent,Icons.trending_down,expenseRed),
+      card(Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
+        Row(children:[
+          const Icon(Icons.savings,color:Colors.blue),
+          const SizedBox(width:14),
+          Expanded(child:Text(t('savings'))),
+          Text(money(goal),style:const TextStyle(fontWeight:FontWeight.bold,fontSize:19,color:Colors.blue)),
+        ]),
+        const SizedBox(height:12),
+        Text('${money(saved)} / ${money(goal)}'),
+        const SizedBox(height:8),
+        LinearProgressIndicator(value:progress),
+      ])),
+      card(Row(children:[
+        const Icon(Icons.calendar_month_outlined,color:Colors.blue),
+        const SizedBox(width:14),
+        const Expanded(child:Text('Ahorro mensual automático')),
+        Text(money(monthlySaving),style:const TextStyle(fontWeight:FontWeight.bold,fontSize:19,color:Colors.blue)),
+      ])),
+      heading(t('recents')),
+      ...tx.reversed.take(7).map(tile),
+    ]);
+  }
   Widget tile(Map<String,dynamic> x,{VoidCallback? onDelete}) {final plus=x['type']=='Ingreso mensual'||x['type']=='Ingreso extra';return card(ListTile(contentPadding:EdgeInsets.zero,title:Text(catName('${x['category']??x['type']}')),subtitle:Text('${x['date']??''}\n${x['note']??''}'),isThreeLine:true,trailing:Row(mainAxisSize:MainAxisSize.min,children:[Text('${plus?'+':'−'}${money(number(x['amount']))}',style:TextStyle(color:plus?green:expenseRed,fontWeight:FontWeight.bold)),if(onDelete!=null)IconButton(onPressed:onDelete,icon:const Icon(Icons.delete_outline))])));}
   Future<void> addTransaction() async {
     String type='Gasto';
