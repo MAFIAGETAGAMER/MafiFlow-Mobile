@@ -256,8 +256,8 @@ jobs:
           echo "Checking APK signature..."
           "$APKSIGNER" verify --verbose "$APK"
 
-          echo "Certificate fingerprint:"
-          "$APKSIGNER" verify --print-certs "$APK" | grep 'Signer #1 certificate SHA-256 digest'
+          echo "Certificate information:"
+          "$APKSIGNER" verify --print-certs "$APK"
 
           echo "SUCCESS: APK signature and Internet permission verified"
 
