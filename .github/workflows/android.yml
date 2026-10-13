@@ -1,5 +1,4 @@
-
-name: Android Release APK
+name: Android Release APK + Google Play AAB
 
 on:
   workflow_dispatch:
@@ -58,9 +57,7 @@ jobs:
           )
 
           assert count == 1, 'Android app label not found'
-
           manifest.write_text(text)
-
           print('MafiFlow name configured')
           print('Internet permission enabled')
           PYANDROID
@@ -269,4 +266,21 @@ jobs:
         with:
           name: MafiFlow-1.0-Android-Release
           path: MafiFlow-1.0-Android.apk
+          if-no-files-found: error
+
+      - name: Build signed Google Play AAB
+        run: flutter build appbundle --release
+
+      - name: Verify AAB signature
+        run: |
+          AAB=build/app/outputs/bundle/release/app-release.aab
+          test -s "$AAB"
+          jarsigner -verify "$AAB"
+          echo "SUCCESS: Google Play AAB verified"
+
+      - name: Upload Google Play AAB
+        uses: actions/upload-artifact@v4
+        with:
+          name: MafiFlow-Google-Play-AAB
+          path: build/app/outputs/bundle/release/app-release.aab
           if-no-files-found: error
