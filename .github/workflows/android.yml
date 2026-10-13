@@ -233,7 +233,7 @@ jobs:
         run: flutter analyze --no-fatal-infos --no-fatal-warnings
 
       - name: Build signed release APK
-        run: flutter build apk --release
+        run: flutter build apk --release --build-name=1.0.1 --build-number=10
 
       - name: Verify APK permissions and signature
         run: |
@@ -259,17 +259,17 @@ jobs:
           echo "SUCCESS: APK signature and Internet permission verified"
 
       - name: Rename APK
-        run: cp build/app/outputs/flutter-apk/app-release.apk MafiFlow-1.0-Android.apk
+        run: cp build/app/outputs/flutter-apk/app-release.apk MafiFlow-1.0.1-Android.apk
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: MafiFlow-1.0-Android-Release
-          path: MafiFlow-1.0-Android.apk
+          name: MafiFlow-1.0.1-Android-Release
+          path: MafiFlow-1.0.1-Android.apk
           if-no-files-found: error
 
       - name: Build signed Google Play AAB
-        run: flutter build appbundle --release
+        run: flutter build appbundle --release --build-name=1.0.1 --build-number=10
 
       - name: Verify AAB signature
         run: |
