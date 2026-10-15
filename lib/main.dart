@@ -20,20 +20,20 @@ const defaults = <String, dynamic>{
   'language': 'es', 'theme': 'light'
 };
 const labels = <String, Map<String,String>>{
-  'es': {'home':'Inicio','moves':'Movimientos','monthly':'Pagos','stats':'Estadísticas','ai':'Consejero IA','settings':'Ajustes','balance':'Disponible','income':'Ingresos','expenses':'Gastos','savings':'Meta de ahorro','add':'Agregar','delete':'Eliminar','save':'Guardar','category':'Categoría','amount':'Cantidad','note':'Nota','name':'Nombre','send':'Enviar','wait':'La IA está preparando tu respuesta','providerWait':'Esperando respuesta del proveedor','noData':'Todavía no hay datos','monthIncome':'Ingreso mensual automático','provider':'Proveedor de IA','model':'Modelo','key':'Clave API','import':'Importar JSON desde portapapeles','export':'Copiar copia de seguridad JSON','confirm':'¿Reemplazar todos los datos de este dispositivo?','yes':'Reemplazar','cancel':'Cancelar','settingsSaved':'Ajustes guardados','invalid':'Cantidad o formato no válido','type':'Tipo','extra':'Ingreso extra','expense':'Gasto','payment':'Pago mensual','active':'Activo','paused':'Pausado','language':'Idioma','theme':'Tema','dark':'Oscuro','light':'Claro','newPayment':'Nuevo pago mensual','noKey':'Configura tu clave API en Ajustes.','custom':'URL personalizada','goal':'Ahorro objetivo','error':'Error','loading':'Conectando','backup':'Copia de seguridad copiada (sin clave API)','imported':'Datos importados','recents':'Últimos movimientos','calculator':'Calculadora'},
-  'en': {'home':'Home','moves':'Transactions','monthly':'Payments','stats':'Statistics','ai':'AI Advisor','settings':'Settings','balance':'Available','income':'Income','expenses':'Expenses','savings':'Savings goal','add':'Add','delete':'Delete','save':'Save','category':'Category','amount':'Amount','note':'Note','name':'Name','send':'Send','wait':'AI is preparing your response','providerWait':'Waiting for provider response','noData':'No data yet','monthIncome':'Automatic monthly income','provider':'AI provider','model':'Model','key':'API key','import':'Import JSON from clipboard','export':'Copy JSON backup','confirm':'Replace all data on this device?','yes':'Replace','cancel':'Cancel','settingsSaved':'Settings saved','invalid':'Invalid amount or format','type':'Type','extra':'Extra income','expense':'Expense','payment':'Monthly payment','active':'Active','paused':'Paused','language':'Language','theme':'Theme','dark':'Dark','light':'Light','newPayment':'New monthly payment','noKey':'Configure your API key in Settings.','custom':'Custom URL','goal':'Savings goal','error':'Error','loading':'Connecting','backup':'Backup copied (without API key)','imported':'Data imported','recents':'Recent transactions','calculator':'Calculator'}
+  'es': {'home':'Inicio','moves':'Movimientos','monthly':'Pagos','stats':'Estadísticas','ai':'Consejero IA','settings':'Ajustes','balance':'Disponible','income':'Ingresos','expenses':'Gastos','savings':'Meta de ahorro','add':'Agregar','delete':'Eliminar','save':'Guardar','category':'Categoría','amount':'Cantidad','note':'Nota','name':'Nombre','send':'Enviar','wait':'La IA está preparando tu respuesta','providerWait':'Esperando respuesta del proveedor','noData':'Todavía no hay datos','monthIncome':'Ingreso recurrente automático','provider':'Proveedor de IA','model':'Modelo','key':'Clave API','import':'Importar JSON desde portapapeles','export':'Copiar copia de seguridad JSON','confirm':'¿Reemplazar todos los datos de este dispositivo?','yes':'Reemplazar','cancel':'Cancelar','settingsSaved':'Ajustes guardados','invalid':'Cantidad o formato no válido','type':'Tipo','extra':'Ingreso extra','expense':'Gasto','payment':'Pago recurrente','active':'Activo','paused':'Pausado','language':'Idioma','theme':'Tema','dark':'Oscuro','light':'Claro','newPayment':'Nuevo pago recurrente','noKey':'Configura tu clave API en Ajustes.','custom':'URL personalizada','goal':'Ahorro objetivo','error':'Error','loading':'Conectando','backup':'Copia de seguridad copiada (sin clave API)','imported':'Datos importados','recents':'Últimos movimientos','calculator':'Calculadora'},
+  'en': {'home':'Home','moves':'Transactions','monthly':'Payments','stats':'Statistics','ai':'AI Advisor','settings':'Settings','balance':'Available','income':'Income','expenses':'Expenses','savings':'Savings goal','add':'Add','delete':'Delete','save':'Save','category':'Category','amount':'Amount','note':'Note','name':'Name','send':'Send','wait':'AI is preparing your response','providerWait':'Waiting for provider response','noData':'No data yet','monthIncome':'Automatic recurring income','provider':'AI provider','model':'Model','key':'API key','import':'Import JSON from clipboard','export':'Copy JSON backup','confirm':'Replace all data on this device?','yes':'Replace','cancel':'Cancel','settingsSaved':'Settings saved','invalid':'Invalid amount or format','type':'Type','extra':'Extra income','expense':'Expense','payment':'Recurring payment','active':'Active','paused':'Paused','language':'Language','theme':'Theme','dark':'Dark','light':'Light','newPayment':'New recurring payment','noKey':'Configure your API key in Settings.','custom':'Custom URL','goal':'Savings goal','error':'Error','loading':'Connecting','backup':'Backup copied (without API key)','imported':'Data imported','recents':'Recent transactions','calculator':'Calculator'}
 };
 const additionalLabels=<String,Map<String,String>>{
-'fr':{'home':'Accueil','moves':'Mouvements','monthly':'Paiements','stats':'Statistiques','ai':'Conseiller IA','settings':'Paramètres','balance':'Disponible','income':'Revenus','expenses':'Dépenses','savings':'Objectif d’épargne','add':'Ajouter','delete':'Supprimer','save':'Enregistrer','category':'Catégorie','amount':'Montant','note':'Note','name':'Nom','send':'Envoyer','wait':'L’IA prépare votre réponse','providerWait':'En attente du fournisseur','noData':'Aucune donnée','monthIncome':'Revenu mensuel automatique','provider':'Fournisseur IA','model':'Modèle','key':'Clé API','import':'Importer JSON','export':'Copier la sauvegarde JSON','confirm':'Remplacer toutes les données ?','yes':'Remplacer','cancel':'Annuler','settingsSaved':'Paramètres enregistrés','invalid':'Montant invalide','type':'Type','extra':'Revenu supplémentaire','expense':'Dépense','payment':'Paiement mensuel','active':'Actif','paused':'Suspendu','language':'Langue','theme':'Thème','dark':'Sombre','light':'Clair','newPayment':'Nouveau paiement mensuel','noKey':'Configurez la clé API dans les paramètres.','custom':'URL personnalisée','goal':'Objectif d’épargne','error':'Erreur','loading':'Connexion','backup':'Sauvegarde copiée','imported':'Données importées','recents':'Dernières opérations'},
-'de':{'home':'Start','moves':'Buchungen','monthly':'Zahlungen','stats':'Statistiken','ai':'KI-Berater','settings':'Einstellungen','balance':'Verfügbar','income':'Einnahmen','expenses':'Ausgaben','savings':'Sparziel','add':'Hinzufügen','delete':'Löschen','save':'Speichern','category':'Kategorie','amount':'Betrag','note':'Notiz','name':'Name','send':'Senden','wait':'KI bereitet die Antwort vor','providerWait':'Warte auf Anbieter','noData':'Noch keine Daten','monthIncome':'Automatisches Monatseinkommen','provider':'KI-Anbieter','model':'Modell','key':'API-Schlüssel','import':'JSON importieren','export':'JSON-Sicherung kopieren','confirm':'Alle Daten ersetzen?','yes':'Ersetzen','cancel':'Abbrechen','settingsSaved':'Gespeichert','invalid':'Ungültiger Betrag','type':'Typ','extra':'Zusätzliches Einkommen','expense':'Ausgabe','payment':'Monatszahlung','active':'Aktiv','paused':'Pausiert','language':'Sprache','theme':'Design','dark':'Dunkel','light':'Hell','newPayment':'Neue Monatszahlung','noKey':'API-Schlüssel in Einstellungen eintragen.','custom':'Eigene URL','goal':'Sparziel','error':'Fehler','loading':'Verbinden','backup':'Sicherung kopiert','imported':'Daten importiert','recents':'Letzte Buchungen'},
-'bn':{'home':'হোম','moves':'লেনদেন','monthly':'মাসিক পেমেন্ট','stats':'পরিসংখ্যান','ai':'এআই পরামর্শক','settings':'সেটিংস','balance':'অবশিষ্ট','income':'আয়','expenses':'খরচ','savings':'সঞ্চয়ের লক্ষ্য','add':'যোগ করুন','delete':'মুছুন','save':'সংরক্ষণ','category':'বিভাগ','amount':'পরিমাণ','note':'নোট','name':'নাম','send':'পাঠান','wait':'এআই উত্তর প্রস্তুত করছে','providerWait':'সেবাদাতার উত্তরের অপেক্ষায়','noData':'কোনো তথ্য নেই','monthIncome':'মাসিক আয়','provider':'এআই প্রদানকারী','model':'মডেল','key':'এপিআই কী','import':'JSON আমদানি','export':'JSON ব্যাকআপ কপি','confirm':'সব তথ্য বদলাবেন?','yes':'বদলান','cancel':'বাতিল','settingsSaved':'সেটিংস সংরক্ষিত','invalid':'ভুল পরিমাণ','type':'ধরন','extra':'অতিরিক্ত আয়','expense':'খরচ','payment':'মাসিক পেমেন্ট','active':'সক্রিয়','paused':'বন্ধ','language':'ভাষা','theme':'থিম','dark':'ডার্ক','light':'লাইট','newPayment':'নতুন মাসিক পেমেন্ট','noKey':'সেটিংসে এপিআই কী দিন।','custom':'কাস্টম URL','goal':'সঞ্চয়ের লক্ষ্য','error':'ত্রুটি','loading':'সংযোগ','backup':'ব্যাকআপ কপি হয়েছে','imported':'তথ্য আমদানি হয়েছে','recents':'সাম্প্রতিক লেনদেন'}
+'fr':{'home':'Accueil','moves':'Mouvements','monthly':'Paiements','stats':'Statistiques','ai':'Conseiller IA','settings':'Paramètres','balance':'Disponible','income':'Revenus','expenses':'Dépenses','savings':'Objectif d’épargne','add':'Ajouter','delete':'Supprimer','save':'Enregistrer','category':'Catégorie','amount':'Montant','note':'Note','name':'Nom','send':'Envoyer','wait':'L’IA prépare votre réponse','providerWait':'En attente du fournisseur','noData':'Aucune donnée','monthIncome':'Revenu récurrent automatique','provider':'Fournisseur IA','model':'Modèle','key':'Clé API','import':'Importer JSON','export':'Copier la sauvegarde JSON','confirm':'Remplacer toutes les données ?','yes':'Remplacer','cancel':'Annuler','settingsSaved':'Paramètres enregistrés','invalid':'Montant invalide','type':'Type','extra':'Revenu supplémentaire','expense':'Dépense','payment':'Paiement récurrent','active':'Actif','paused':'Suspendu','language':'Langue','theme':'Thème','dark':'Sombre','light':'Clair','newPayment':'Nouveau paiement récurrent','noKey':'Configurez la clé API dans les paramètres.','custom':'URL personnalisée','goal':'Objectif d’épargne','error':'Erreur','loading':'Connexion','backup':'Sauvegarde copiée','imported':'Données importées','recents':'Dernières opérations'},
+'de':{'home':'Start','moves':'Buchungen','monthly':'Zahlungen','stats':'Statistiken','ai':'KI-Berater','settings':'Einstellungen','balance':'Verfügbar','income':'Einnahmen','expenses':'Ausgaben','savings':'Sparziel','add':'Hinzufügen','delete':'Löschen','save':'Speichern','category':'Kategorie','amount':'Betrag','note':'Notiz','name':'Name','send':'Senden','wait':'KI bereitet die Antwort vor','providerWait':'Warte auf Anbieter','noData':'Noch keine Daten','monthIncome':'Automatisches wiederkehrendes Einkommen','provider':'KI-Anbieter','model':'Modell','key':'API-Schlüssel','import':'JSON importieren','export':'JSON-Sicherung kopieren','confirm':'Alle Daten ersetzen?','yes':'Ersetzen','cancel':'Abbrechen','settingsSaved':'Gespeichert','invalid':'Ungültiger Betrag','type':'Typ','extra':'Zusätzliches Einkommen','expense':'Ausgabe','payment':'Wiederkehrende Zahlung','active':'Aktiv','paused':'Pausiert','language':'Sprache','theme':'Design','dark':'Dunkel','light':'Hell','newPayment':'Neue wiederkehrende Zahlung','noKey':'API-Schlüssel in Einstellungen eintragen.','custom':'Eigene URL','goal':'Sparziel','error':'Fehler','loading':'Verbinden','backup':'Sicherung kopiert','imported':'Daten importiert','recents':'Letzte Buchungen'},
+'bn':{'home':'হোম','moves':'লেনদেন','monthly':'মাসিক পেমেন্ট','stats':'পরিসংখ্যান','ai':'এআই পরামর্শক','settings':'সেটিংস','balance':'অবশিষ্ট','income':'আয়','expenses':'খরচ','savings':'সঞ্চয়ের লক্ষ্য','add':'যোগ করুন','delete':'মুছুন','save':'সংরক্ষণ','category':'বিভাগ','amount':'পরিমাণ','note':'নোট','name':'নাম','send':'পাঠান','wait':'এআই উত্তর প্রস্তুত করছে','providerWait':'সেবাদাতার উত্তরের অপেক্ষায়','noData':'কোনো তথ্য নেই','monthIncome':'নিয়মিত আয়','provider':'এআই প্রদানকারী','model':'মডেল','key':'এপিআই কী','import':'JSON আমদানি','export':'JSON ব্যাকআপ কপি','confirm':'সব তথ্য বদলাবেন?','yes':'বদলান','cancel':'বাতিল','settingsSaved':'সেটিংস সংরক্ষিত','invalid':'ভুল পরিমাণ','type':'ধরন','extra':'অতিরিক্ত আয়','expense':'খরচ','payment':'নিয়মিত পেমেন্ট','active':'সক্রিয়','paused':'বন্ধ','language':'ভাষা','theme':'থিম','dark':'ডার্ক','light':'লাইট','newPayment':'নতুন নিয়মিত পেমেন্ট','noKey':'সেটিংসে এপিআই কী দিন।','custom':'কাস্টম URL','goal':'সঞ্চয়ের লক্ষ্য','error':'ত্রুটি','loading':'সংযোগ','backup':'ব্যাকআপ কপি হয়েছে','imported':'তথ্য আমদানি হয়েছে','recents':'সাম্প্রতিক লেনদেন'}
 };
 const featureLabels = <String,Map<String,String>>{
-  'es': {'automaticSavings': 'Ahorro mensual automático', 'chargeDay': 'Día de cobro mensual', 'chargeDayHint': 'Se descontará automáticamente en ese día de cada mes.', 'chargeDaySubtitle': 'Día {day} de cada mes', 'changeDay': 'Cambiar día', 'payAmount': 'Cantidad que recibes por pago', 'payFrequency': '¿Cada cuánto cobras?', 'freqDaily': 'Diariamente', 'freqWeekly': 'Semanalmente', 'freqBiweekly': 'Cada 2 semanas', 'freqMonthly': 'Mensualmente', 'monthlySavings': 'Ahorro mensual', 'monthlySavingsHint': 'Cada mes se reservará automáticamente esta cantidad del dinero disponible, hasta alcanzar la meta.', 'pasteJsonHint': 'Pega aquí tu copia de seguridad JSON', 'pasteClipboard': 'Pegar desde portapapeles', 'invalidBackup': 'El JSON no es válido o no contiene datos de MafiFlow.', 'importBackup': 'Importar copia de seguridad'},
-  'en': {'automaticSavings': 'Automatic monthly savings', 'chargeDay': 'Monthly charge day', 'chargeDayHint': 'The payment will be deducted automatically on this day each month.', 'chargeDaySubtitle': 'Day {day} of each month', 'changeDay': 'Change day', 'payAmount': 'Amount received per payday', 'payFrequency': 'How often are you paid?', 'freqDaily': 'Daily', 'freqWeekly': 'Weekly', 'freqBiweekly': 'Every 2 weeks', 'freqMonthly': 'Monthly', 'monthlySavings': 'Monthly savings', 'monthlySavingsHint': 'Each month, this amount will automatically be reserved from your available balance until you reach your goal.', 'pasteJsonHint': 'Paste your JSON backup here', 'pasteClipboard': 'Paste from clipboard', 'invalidBackup': 'Invalid JSON or not a MafiFlow backup.', 'importBackup': 'Import backup'},
-  'fr': {'automaticSavings': 'Épargne mensuelle automatique', 'chargeDay': 'Jour du prélèvement mensuel', 'chargeDayHint': 'Le paiement sera prélevé automatiquement ce jour-là chaque mois.', 'chargeDaySubtitle': 'Jour {day} de chaque mois', 'changeDay': 'Modifier le jour', 'payAmount': 'Montant reçu par paie', 'payFrequency': 'À quelle fréquence êtes-vous payé ?', 'freqDaily': 'Chaque jour', 'freqWeekly': 'Chaque semaine', 'freqBiweekly': 'Toutes les 2 semaines', 'freqMonthly': 'Chaque mois', 'monthlySavings': 'Épargne mensuelle', 'monthlySavingsHint': 'Chaque mois, ce montant sera automatiquement réservé sur votre solde disponible jusqu’à atteindre votre objectif.', 'pasteJsonHint': 'Collez votre sauvegarde JSON ici', 'pasteClipboard': 'Coller depuis le presse-papiers', 'invalidBackup': 'JSON invalide ou sauvegarde MafiFlow non reconnue.', 'importBackup': 'Importer la sauvegarde'},
-  'de': {'automaticSavings': 'Automatisches monatliches Sparen', 'chargeDay': 'Monatlicher Abbuchungstag', 'chargeDayHint': 'Die Zahlung wird jeden Monat automatisch an diesem Tag abgebucht.', 'chargeDaySubtitle': 'Tag {day} jedes Monats', 'changeDay': 'Tag ändern', 'payAmount': 'Betrag pro Gehaltszahlung', 'payFrequency': 'Wie oft wirst du bezahlt?', 'freqDaily': 'Täglich', 'freqWeekly': 'Wöchentlich', 'freqBiweekly': 'Alle 2 Wochen', 'freqMonthly': 'Monatlich', 'monthlySavings': 'Monatlicher Sparbetrag', 'monthlySavingsHint': 'Jeden Monat wird dieser Betrag automatisch vom verfügbaren Guthaben zurückgelegt, bis das Sparziel erreicht ist.', 'pasteJsonHint': 'JSON-Sicherung hier einfügen', 'pasteClipboard': 'Aus Zwischenablage einfügen', 'invalidBackup': 'Ungültiges JSON oder keine MafiFlow-Sicherung.', 'importBackup': 'Sicherung importieren'},
-  'bn': {'automaticSavings': 'স্বয়ংক্রিয় মাসিক সঞ্চয়', 'chargeDay': 'মাসিক টাকা কাটার দিন', 'chargeDayHint': 'প্রতি মাসে এই দিনে স্বয়ংক্রিয়ভাবে টাকা কাটা হবে।', 'chargeDaySubtitle': 'প্রতি মাসের {day} তারিখ', 'changeDay': 'দিন পরিবর্তন', 'payAmount': 'প্রতি বেতনে প্রাপ্ত অর্থ', 'payFrequency': 'কত ঘন ঘন বেতন পান?', 'freqDaily': 'প্রতিদিন', 'freqWeekly': 'প্রতি সপ্তাহে', 'freqBiweekly': 'প্রতি ২ সপ্তাহে', 'freqMonthly': 'প্রতি মাসে', 'monthlySavings': 'মাসিক সঞ্চয়', 'monthlySavingsHint': 'লক্ষ্য পূরণ না হওয়া পর্যন্ত প্রতি মাসে উপলব্ধ ব্যালেন্স থেকে এই পরিমাণ স্বয়ংক্রিয়ভাবে সঞ্চয় করা হবে।', 'pasteJsonHint': 'এখানে JSON ব্যাকআপ পেস্ট করুন', 'pasteClipboard': 'ক্লিপবোর্ড থেকে পেস্ট করুন', 'invalidBackup': 'অবৈধ JSON বা MafiFlow ব্যাকআপ নয়।', 'importBackup': 'ব্যাকআপ আমদানি করুন'}
+  'es': {'automaticSavings': 'Ahorro mensual automático', 'chargeDay': 'Día de cobro mensual', 'chargeDayHint': 'Se descontará automáticamente en ese día de cada mes.', 'chargeDaySubtitle': 'Día {day} de cada mes', 'changeDay': 'Cambiar día', 'payAmount': 'Cantidad que recibes por pago', 'payFrequency': '¿Cada cuánto cobras?', 'freqDaily': 'Diariamente', 'freqWeekly': 'Semanalmente', 'freqBiweekly': 'Cada 2 semanas', 'freqMonthly': 'Mensualmente', 'monthlySavings': 'Ahorro mensual', 'monthlySavingsHint': 'Cada mes se reservará automáticamente esta cantidad del dinero disponible, hasta alcanzar la meta.', 'pasteJsonHint': 'Pega aquí tu copia de seguridad JSON', 'pasteClipboard': 'Pegar desde portapapeles', 'invalidBackup': 'El JSON no es válido o no contiene datos de MafiFlow.', 'importBackup': 'Importar copia de seguridad','freqTwoMonths': 'Cada 2 meses','freqThreeMonths': 'Cada 3 meses','recurringPayments': 'Pagos recurrentes','newRecurringPayment': 'Nuevo pago recurrente','paymentFrequency': '¿Cada cuánto se repite este pago?','recurringDay': 'Día del pago','recurringDayHint': 'El día elegido determina el primer vencimiento; después se repite según la frecuencia.','editSchedule': 'Editar frecuencia y día','firstPaymentDate': 'Fecha del primer pago','weeklyDateHint': 'Se repetirá cada 7 o 14 días desde esta fecha','dailyDateHint': 'Comienza hoy y se repite todos los días'},
+  'en': {'automaticSavings': 'Automatic monthly savings', 'chargeDay': 'Monthly charge day', 'chargeDayHint': 'The payment will be deducted automatically on this day each month.', 'chargeDaySubtitle': 'Day {day} of each month', 'changeDay': 'Change day', 'payAmount': 'Amount received per payday', 'payFrequency': 'How often are you paid?', 'freqDaily': 'Daily', 'freqWeekly': 'Weekly', 'freqBiweekly': 'Every 2 weeks', 'freqMonthly': 'Monthly', 'monthlySavings': 'Monthly savings', 'monthlySavingsHint': 'Each month, this amount will automatically be reserved from your available balance until you reach your goal.', 'pasteJsonHint': 'Paste your JSON backup here', 'pasteClipboard': 'Paste from clipboard', 'invalidBackup': 'Invalid JSON or not a MafiFlow backup.', 'importBackup': 'Import backup','freqTwoMonths': 'Every 2 months','freqThreeMonths': 'Every 3 months','recurringPayments': 'Recurring payments','newRecurringPayment': 'New recurring payment','paymentFrequency': 'How often does this payment repeat?','recurringDay': 'Payment day','recurringDayHint': 'The selected day sets the first due date; subsequent payments follow the frequency.','editSchedule': 'Edit frequency and day','firstPaymentDate': 'First payment date','weeklyDateHint': 'Repeats every 7 or 14 days from this date','dailyDateHint': 'Starts today and repeats daily'},
+  'fr': {'automaticSavings': 'Épargne mensuelle automatique', 'chargeDay': 'Jour du prélèvement mensuel', 'chargeDayHint': 'Le paiement sera prélevé automatiquement ce jour-là chaque mois.', 'chargeDaySubtitle': 'Jour {day} de chaque mois', 'changeDay': 'Modifier le jour', 'payAmount': 'Montant reçu par paie', 'payFrequency': 'À quelle fréquence êtes-vous payé ?', 'freqDaily': 'Chaque jour', 'freqWeekly': 'Chaque semaine', 'freqBiweekly': 'Toutes les 2 semaines', 'freqMonthly': 'Chaque mois', 'monthlySavings': 'Épargne mensuelle', 'monthlySavingsHint': 'Chaque mois, ce montant sera automatiquement réservé sur votre solde disponible jusqu’à atteindre votre objectif.', 'pasteJsonHint': 'Collez votre sauvegarde JSON ici', 'pasteClipboard': 'Coller depuis le presse-papiers', 'invalidBackup': 'JSON invalide ou sauvegarde MafiFlow non reconnue.', 'importBackup': 'Importer la sauvegarde','freqTwoMonths': 'Tous les 2 mois','freqThreeMonths': 'Tous les 3 mois','recurringPayments': 'Paiements récurrents','newRecurringPayment': 'Nouveau paiement récurrent','paymentFrequency': 'À quelle fréquence ce paiement se répète-t-il ?','recurringDay': 'Jour du paiement','recurringDayHint': 'Le jour choisi définit la première échéance, puis la fréquence s’applique.','editSchedule': 'Modifier la fréquence et le jour','firstPaymentDate': 'Date du premier paiement','weeklyDateHint': 'Répétition tous les 7 ou 14 jours à partir de cette date','dailyDateHint': 'Commence aujourd’hui et se répète chaque jour'},
+  'de': {'automaticSavings': 'Automatisches monatliches Sparen', 'chargeDay': 'Monatlicher Abbuchungstag', 'chargeDayHint': 'Die Zahlung wird jeden Monat automatisch an diesem Tag abgebucht.', 'chargeDaySubtitle': 'Tag {day} jedes Monats', 'changeDay': 'Tag ändern', 'payAmount': 'Betrag pro Gehaltszahlung', 'payFrequency': 'Wie oft wirst du bezahlt?', 'freqDaily': 'Täglich', 'freqWeekly': 'Wöchentlich', 'freqBiweekly': 'Alle 2 Wochen', 'freqMonthly': 'Monatlich', 'monthlySavings': 'Monatlicher Sparbetrag', 'monthlySavingsHint': 'Jeden Monat wird dieser Betrag automatisch vom verfügbaren Guthaben zurückgelegt, bis das Sparziel erreicht ist.', 'pasteJsonHint': 'JSON-Sicherung hier einfügen', 'pasteClipboard': 'Aus Zwischenablage einfügen', 'invalidBackup': 'Ungültiges JSON oder keine MafiFlow-Sicherung.', 'importBackup': 'Sicherung importieren','freqTwoMonths': 'Alle 2 Monate','freqThreeMonths': 'Alle 3 Monate','recurringPayments': 'Wiederkehrende Zahlungen','newRecurringPayment': 'Neue wiederkehrende Zahlung','paymentFrequency': 'Wie oft wird diese Zahlung wiederholt?','recurringDay': 'Zahlungstag','recurringDayHint': 'Der gewählte Tag bestimmt die erste Fälligkeit; danach gilt das Intervall.','editSchedule': 'Intervall und Tag ändern','firstPaymentDate': 'Datum der ersten Zahlung','weeklyDateHint': 'Wiederholt sich ab diesem Datum alle 7 oder 14 Tage','dailyDateHint': 'Beginnt heute und wiederholt sich täglich'},
+  'bn': {'automaticSavings': 'স্বয়ংক্রিয় মাসিক সঞ্চয়', 'chargeDay': 'মাসিক টাকা কাটার দিন', 'chargeDayHint': 'প্রতি মাসে এই দিনে স্বয়ংক্রিয়ভাবে টাকা কাটা হবে।', 'chargeDaySubtitle': 'প্রতি মাসের {day} তারিখ', 'changeDay': 'দিন পরিবর্তন', 'payAmount': 'প্রতি বেতনে প্রাপ্ত অর্থ', 'payFrequency': 'কত ঘন ঘন বেতন পান?', 'freqDaily': 'প্রতিদিন', 'freqWeekly': 'প্রতি সপ্তাহে', 'freqBiweekly': 'প্রতি ২ সপ্তাহে', 'freqMonthly': 'প্রতি মাসে', 'monthlySavings': 'মাসিক সঞ্চয়', 'monthlySavingsHint': 'লক্ষ্য পূরণ না হওয়া পর্যন্ত প্রতি মাসে উপলব্ধ ব্যালেন্স থেকে এই পরিমাণ স্বয়ংক্রিয়ভাবে সঞ্চয় করা হবে।', 'pasteJsonHint': 'এখানে JSON ব্যাকআপ পেস্ট করুন', 'pasteClipboard': 'ক্লিপবোর্ড থেকে পেস্ট করুন', 'invalidBackup': 'অবৈধ JSON বা MafiFlow ব্যাকআপ নয়।', 'importBackup': 'ব্যাকআপ আমদানি করুন','freqTwoMonths': 'প্রতি ২ মাসে','freqThreeMonths': 'প্রতি ৩ মাসে','recurringPayments': 'নিয়মিত পেমেন্ট','newRecurringPayment': 'নতুন নিয়মিত পেমেন্ট','paymentFrequency': 'এই পেমেন্ট কত ঘন ঘন হবে?','recurringDay': 'পেমেন্টের দিন','recurringDayHint': 'নির্বাচিত দিন প্রথম পেমেন্টের তারিখ নির্ধারণ করে; এরপর নির্ধারিত বিরতিতে হবে।','editSchedule': 'সময়সূচি ও দিন পরিবর্তন','firstPaymentDate': 'প্রথম পেমেন্টের তারিখ','weeklyDateHint': 'এই তারিখ থেকে প্রতি ৭ বা ১৪ দিনে পুনরাবৃত্তি হবে','dailyDateHint': 'আজ থেকে প্রতিদিন পুনরাবৃত্তি হবে'}
 };
 const improvedLabels = <String,Map<String,String>>{
 'es': {'opening':'Saldo inicial','currency':'Moneda','manageCategories':'Administrar categorías','newCategory':'Nueva categoría','categoriesHint':'Elige una categoría','categoryName':'Nombre de categoría','removeCategory':'Eliminar categoría','restoreCategories':'Restablecer categorías','categoryInUse':'Esta categoría se usa en movimientos anteriores; los registros no se borrarán.','chartType':'Tipo de gráfica','distribution':'Distribución de gastos','monthlyTrend':'Comparación mensual','categoryShares':'Gastos por categoría','monthComparison':'Comparación con el mes anterior','previousMonth':'Mes anterior','currentMonth':'Mes actual','spendingChange':'Variación de gastos','incomeChange':'Variación de ingresos','noPrevious':'Sin datos del mes anterior','barChart':'Barras','pieChart':'Circular','lineChart':'Líneas','share':'del gasto','expenseCategories':'Categorías de gastos','editCategories':'Editar categorías'},
@@ -57,6 +57,18 @@ const categoryTranslations = <String,Map<String,String>>{
 };
 const defaultCategories=['Comida','Transporte','Vivienda','Servicios','Salud','Entretenimiento','Compras','Educación','Otro'];
 
+String wizardFirstRecurringDate(int day,String frequency){
+  final now=DateTime.now();
+  final today=DateTime(now.year,now.month,now.day);
+  if(frequency=='daily'||frequency=='weekly'||frequency=='biweekly')return '${today.year}-${today.month.toString().padLeft(2,'0')}-${today.day.toString().padLeft(2,'0')}';
+  final last=DateTime(today.year,today.month+1,0).day;
+  var due=DateTime(today.year,today.month,min(day,last));
+  if(due.isBefore(today)){
+    final next=DateTime(today.year,today.month+1,1);
+    due=DateTime(next.year,next.month,min(day,DateTime(next.year,next.month+1,0).day));
+  }
+  return '${due.year}-${due.month.toString().padLeft(2,'0')}-${due.day.toString().padLeft(2,'0')}';
+}
 String monthNow() { final d=DateTime.now(); return '${d.year}-${d.month.toString().padLeft(2,'0')}'; }
 // Helpers for the statistics screen.
 String monthAt(int offset) {
@@ -100,7 +112,7 @@ class _MafiFlowAppState extends State<MafiFlowApp> {
     final note='${x['note']??''}';
     if(note.startsWith('Ingreso automático (') && note.endsWith(')')){
       final frequency=note.substring('Ingreso automático ('.length,note.length-1);
-      final label= <String,String>{'daily':'incomeFrequencyDaily','weekly':'incomeFrequencyWeekly','biweekly':'incomeFrequencyBiweekly','monthly':'incomeFrequencyMonthly'}[frequency];
+      final label= <String,String>{'daily':'incomeFrequencyDaily','weekly':'incomeFrequencyWeekly','biweekly':'incomeFrequencyBiweekly','monthly':'incomeFrequencyMonthly','two_months':'freqTwoMonths','three_months':'freqThreeMonths'}[frequency];
       final lang='${data['language']??'es'}';
       const translations={
         'es':['Ingreso automático','Diariamente','Semanalmente','Cada 2 semanas','Mensualmente'],
@@ -113,7 +125,7 @@ class _MafiFlowAppState extends State<MafiFlowApp> {
       final index={'daily':1,'weekly':2,'biweekly':3,'monthly':4}[frequency];
       return '${words[0]} (${index==null?frequency:words[index]})';
     }
-    if(note=='Ingreso mensual automático')return t('monthIncome');
+    if(note=='Ingreso recurrente automático')return t('monthIncome');
     return note;
   }
   List<String> get categories {final hidden=(data['hidden_categories'] as List? ?? []).map((e)=>'$e').toSet();final custom=(data['custom_categories'] as List? ?? []).map((e)=>'$e').where((e)=>e.trim().isNotEmpty);return {...defaultCategories,...custom}.where((e)=>!hidden.contains(e)).toList();}
@@ -166,7 +178,8 @@ class _MafiFlowAppState extends State<MafiFlowApp> {
       else if(freq=='weekly'){cursor=cursor.add(const Duration(days:7));}
       else if(freq=='biweekly'){cursor=cursor.add(const Duration(days:14));}
       else {
-        final nextMonth=DateTime(cursor.year,cursor.month+1,1);
+        final interval=freq=='two_months'?2:freq=='three_months'?3:1;
+        final nextMonth=DateTime(cursor.year,cursor.month+interval,1);
         final lastDay=DateTime(nextMonth.year,nextMonth.month+1,0).day;
         cursor=DateTime(nextMonth.year,nextMonth.month,start.day>lastDay?lastDay:start.day);
       }
@@ -174,6 +187,40 @@ class _MafiFlowAppState extends State<MafiFlowApp> {
     data['transactions']=list;
     data['income_processed_dates']=done;
   }
+  // Keep the original internal transaction type for compatibility with existing balances.
+  String frequencyLabel(String freq) => t({
+    'daily':'freqDaily','weekly':'freqWeekly','biweekly':'freqBiweekly',
+    'monthly':'freqMonthly','two_months':'freqTwoMonths','three_months':'freqThreeMonths',
+  }[freq] ?? 'freqMonthly');
+
+  List<DropdownMenuItem<String>> frequencyOptions() => [
+    for(final f in ['daily','weekly','biweekly','monthly','two_months','three_months'])
+      DropdownMenuItem(value:f,child:Text(frequencyLabel(f))),
+  ];
+
+  // Calendar-month intervals stay anchored to the chosen day (29/30/31 are
+  // clamped in short months); weekly intervals use 7/14 actual days.
+  DateTime recurringDue(DateTime anchor,int day,String frequency,int index){
+    if(frequency=='daily')return anchor.add(Duration(days:index));
+    if(frequency=='weekly')return anchor.add(Duration(days:7*index));
+    if(frequency=='biweekly')return anchor.add(Duration(days:14*index));
+    final months=frequency=='two_months'?2:frequency=='three_months'?3:1;
+    final month=DateTime(anchor.year,anchor.month+months*index,1);
+    final last=DateTime(month.year,month.month+1,0).day;
+    return DateTime(month.year,month.month,min(day,last));
+  }
+
+  DateTime firstRecurringDate(DateTime today,int day,String frequency){
+    if(frequency=='daily'||frequency=='weekly'||frequency=='biweekly')return today;
+    final last=DateTime(today.year,today.month+1,0).day;
+    var candidate=DateTime(today.year,today.month,min(day,last));
+    if(candidate.isBefore(today)){
+      final next=DateTime(today.year,today.month+1,1);
+      candidate=DateTime(next.year,next.month,min(day,DateTime(next.year,next.month+1,0).day));
+    }
+    return candidate;
+  }
+
   // Each recurring bill is charged on its own selected day.
   // A payment created today starts no earlier than today, avoiding retroactive charges.
   void applyMonthly(){
@@ -184,40 +231,42 @@ class _MafiFlowAppState extends State<MafiFlowApp> {
     bool changed=false;
     for(int i=0;i<bills.length;i++){
       final p=bills[i];
-      // Stable ID is necessary to prevent duplicates when bills share a name.
       if(p['id']==null){p['id']='bill_${DateTime.now().microsecondsSinceEpoch}_$i';changed=true;}
       final id='${p['id']}';
-      final rawDay=(number(p['day']).toInt());
-      final day=rawDay.clamp(1,31);
+      final day=number(p['day']).toInt().clamp(1,31);
       if(p['day']!=day){p['day']=day;changed=true;}
+      final frequency='${p['frequency']??'monthly'}';
+      if(p['frequency']==null){p['frequency']='monthly';changed=true;}
       if(p['start_date']==null){
-        // Old bills were already charged on the 1st by the legacy system.
-        // Preserve that history; begin the new schedule today.
-        p['start_date']='${today.year}-${today.month.toString().padLeft(2,'0')}-${today.day.toString().padLeft(2,'0')}';
-        changed=true;
+        // Legacy records have already been processed; don't charge retroactively.
+        p['start_date']=dateOnly(today);changed=true;
       }
       if(p['active']==false)continue;
       final amount=number(p['amount']);
       if(amount<=0)continue;
-      final start=DateTime.tryParse('${p['start_date']}');
-      if(start==null)continue;
-      final first=DateTime(start.year,start.month,1);
-      for(int offset=0;offset<1200;offset++){
-        final month=DateTime(first.year,first.month+offset,1);
-        if(month.isAfter(today))break;
-        final lastDay=DateTime(month.year,month.month+1,0).day;
-        final due=DateTime(month.year,month.month,day>lastDay?lastDay:day);
-        if(due.isBefore(DateTime(start.year,start.month,start.day))||due.isAfter(today))continue;
-        final monthKey='${month.year}-${month.month.toString().padLeft(2,'0')}';
-        final dueKey='${due.year}-${due.month.toString().padLeft(2,'0')}-${due.day.toString().padLeft(2,'0')}';
-        final exists=list.any((x)=>x['type']=='Pago mensual' &&
-          (x['auto_bill_id']==id && x['auto_month']==monthKey ||
-          // Prevent a second charge when migrating legacy monthly bills.
-          (x['auto_bill_id']==null && x['auto_month']==monthKey && x['note']=='${p['name']??''}')));
+      final rawStart=DateTime.tryParse('${p['start_date']}');
+      if(rawStart==null)continue;
+      final start=DateTime(rawStart.year,rawStart.month,rawStart.day);
+      if(start.isAfter(today))continue;
+      // Existing monthly bills keep their previous calendar-month behavior.
+      // New weekly/daily bills start at the explicitly selected first due date.
+      final first=frequency=='monthly'||frequency=='two_months'||frequency=='three_months'
+        ? DateTime(start.year,start.month,1) : start;
+      for(int n=0;n<3660;n++){
+        final due=recurringDue(first,day,frequency,n);
+        if(due.isAfter(today))break;
+        if(due.isBefore(start))continue;
+        final dueKey=dateOnly(due);
+        final monthKey='${due.year}-${due.month.toString().padLeft(2,'0')}';
+        final exists=list.any((x)=>x['type']=='Pago mensual' && (
+          (x['auto_bill_id']==id && (x['auto_due_date']==dueKey ||
+            (x['auto_due_date']==null && x['auto_month']==monthKey && frequency=='monthly'))) ||
+          (frequency=='monthly' && x['auto_bill_id']==null && x['auto_month']==monthKey && x['note']=='${p['name']??''}')
+        ));
         if(!exists){
           list.add({'date':'$dueKey 09:00:00','type':'Pago mensual',
             'category':'Pago mensual','amount':amount,'note':'${p['name']??''}',
-            'auto_month':monthKey,'auto_bill_id':id});
+            'auto_month':monthKey,'auto_due_date':dueKey,'auto_bill_id':id});
           changed=true;
         }
       }
@@ -226,6 +275,7 @@ class _MafiFlowAppState extends State<MafiFlowApp> {
     applyIncomeSchedule();
     save();
   }
+  String dateOnly(DateTime d)=>'${d.year}-${d.month.toString().padLeft(2,'0')}-${d.day.toString().padLeft(2,'0')}';
   // Reserve savings once per calendar month, without exceeding the target.
   // This is a budgeting reserve, not a real bank transfer.
   void applySavingsMonthly(){
@@ -350,43 +400,67 @@ class _MafiFlowAppState extends State<MafiFlowApp> {
   Future<void> addPayment()async {
     final name=TextEditingController(),amount=TextEditingController();
     int selectedDay=DateTime.now().day;
+    String selectedFrequency='monthly';
+    DateTime firstPaymentDate=DateTime.now();
     await showDialog(context:dialogContext,builder:(c)=>StatefulBuilder(builder:(context,setDialogState)=>AlertDialog(
-      title:Text(t('newPayment')),
+      title:Text(t('newRecurringPayment')),
       content:SingleChildScrollView(child:Column(mainAxisSize:MainAxisSize.min,children:[
         TextField(controller:name,decoration:InputDecoration(labelText:t('name'))),
         TextField(controller:amount,keyboardType:const TextInputType.numberWithOptions(decimal:true),decoration:InputDecoration(labelText:t('amount'))),
-        DropdownButtonFormField<int>(initialValue:selectedDay,
-          decoration:InputDecoration(labelText:t('chargeDay')),
-          items:List.generate(31,(i)=>DropdownMenuItem(value:i+1,child:Text('${i+1}'))),
-          onChanged:(v)=>setDialogState(()=>selectedDay=v??1)),
-        const SizedBox(height:8),
-        Text(t('chargeDayHint'),style:Theme.of(context).textTheme.bodySmall),
+        DropdownButtonFormField<String>(isExpanded:true,initialValue:selectedFrequency,
+          decoration:InputDecoration(labelText:t('paymentFrequency')),
+          items:frequencyOptions(),onChanged:(v)=>setDialogState(()=>selectedFrequency=v??'monthly')),
+        if(selectedFrequency=='daily')
+          Text(t('dailyDateHint'),style:Theme.of(context).textTheme.bodySmall)
+        else if(selectedFrequency=='weekly'||selectedFrequency=='biweekly') ...[
+          ListTile(contentPadding:EdgeInsets.zero,title:Text(t('firstPaymentDate')),
+            subtitle:Text(dateOnly(firstPaymentDate)),trailing:const Icon(Icons.calendar_today),
+            onTap:()async{final d=await showDatePicker(context:context,initialDate:firstPaymentDate,firstDate:DateTime.now().subtract(const Duration(days:1)),lastDate:DateTime(2100));if(d!=null)setDialogState(()=>firstPaymentDate=d);}),
+          Text(t('weeklyDateHint'),style:Theme.of(context).textTheme.bodySmall),
+        ] else ...[
+          DropdownButtonFormField<int>(initialValue:selectedDay,
+            decoration:InputDecoration(labelText:t('recurringDay')),
+            items:List.generate(31,(i)=>DropdownMenuItem(value:i+1,child:Text('${i+1}'))),
+            onChanged:(v)=>setDialogState(()=>selectedDay=v??1)),
+          Text(t('recurringDayHint'),style:Theme.of(context).textTheme.bodySmall),
+        ],
       ])),
       actions:[TextButton(onPressed:()=>Navigator.pop(c),child:Text(t('cancel'))),
         FilledButton(onPressed:(){final n=double.tryParse(amount.text.replaceAll(',','.'));
           if(n==null||n<=0||!n.isFinite||name.text.trim().isEmpty){notice(t('invalid'));return;}
-          final today=DateTime.now().toIso8601String().substring(0,10);
-          data['monthly_payments']=[...payments,{'name':name.text.trim(),'amount':n,'active':true,'day':selectedDay,'start_date':today}];
+          final now=DateTime.now();
+          final first=(selectedFrequency=='weekly'||selectedFrequency=='biweekly')?firstPaymentDate:firstRecurringDate(DateTime(now.year,now.month,now.day),selectedDay,selectedFrequency);
+          data['monthly_payments']=[...payments,{'name':name.text.trim(),'amount':n,'active':true,'day':selectedDay,'frequency':selectedFrequency,'start_date':dateOnly(first)}];
           Navigator.pop(c);applyMonthly();
         },child:Text(t('save')))])));
     name.dispose();amount.dispose();
   }
-  Widget monthly()=>scroll([heading(t('monthly')),
-    FilledButton.icon(onPressed:addPayment,icon:const Icon(Icons.add),label:Text(t('newPayment'))),
+  Widget monthly()=>scroll([heading(t('recurringPayments')),
+    FilledButton.icon(onPressed:addPayment,icon:const Icon(Icons.add),label:Text(t('newRecurringPayment'))),
     ...payments.asMap().entries.map((e)=>card(ListTile(
       title:Text('${e.value['name']}'),
-      subtitle:Text("${money(number(e.value['amount']))} · ${t('chargeDaySubtitle').replaceAll('{day}', '${number(e.value['day']).toInt().clamp(1,31)}')}"),
-      leading:Switch(value:e.value['active']!=false,onChanged:(v){final list=payments;list[e.key]['active']=v;if(v)list[e.key]['start_date']=DateTime.now().toIso8601String().substring(0,10);data['monthly_payments']=list;applyMonthly();}),
+      subtitle:Text("${money(number(e.value['amount']))} · ${frequencyLabel('${e.value['frequency']??'monthly'}')} · ${['daily','weekly','biweekly'].contains('${e.value['frequency']??'monthly'}')?'': '${t('recurringDay')} ${number(e.value['day']).toInt().clamp(1,31)}'}"),
+      leading:Switch(value:e.value['active']!=false,onChanged:(v){final list=payments;list[e.key]['active']=v;if(v){final now=DateTime.now();list[e.key]['start_date']=dateOnly(firstRecurringDate(DateTime(now.year,now.month,now.day),number(list[e.key]['day']).toInt().clamp(1,31),'${list[e.key]['frequency']??'monthly'}'));}data['monthly_payments']=list;applyMonthly();}),
       trailing:Row(mainAxisSize:MainAxisSize.min,children:[
-        IconButton(tooltip:t('changeDay'),icon:const Icon(Icons.edit_calendar_outlined),onPressed:()async{
+        IconButton(tooltip:t('editSchedule'),icon:const Icon(Icons.edit_calendar_outlined),onPressed:()async{
           int selectedDay=number(e.value['day']).toInt().clamp(1,31);
+          String selectedFrequency='${e.value['frequency']??'monthly'}';
+          DateTime firstPaymentDate=DateTime.tryParse('${e.value['start_date']}')??DateTime.now();
+          if(firstPaymentDate.isBefore(DateTime(DateTime.now().year,DateTime.now().month,DateTime.now().day)))firstPaymentDate=DateTime.now();
           await showDialog(context:dialogContext,builder:(c)=>StatefulBuilder(builder:(context,setDialogState)=>AlertDialog(
-            title:Text(t('chargeDay')),
-            content:DropdownButtonFormField<int>(initialValue:selectedDay,items:List.generate(31,(i)=>DropdownMenuItem(value:i+1,child:Text('${i+1}'))),onChanged:(v)=>setDialogState(()=>selectedDay=v??1)),
+            title:Text(t('editSchedule')),
+            content:Column(mainAxisSize:MainAxisSize.min,children:[
+              DropdownButtonFormField<String>(isExpanded:true,initialValue:selectedFrequency,decoration:InputDecoration(labelText:t('paymentFrequency')),items:frequencyOptions(),onChanged:(v)=>setDialogState(()=>selectedFrequency=v??'monthly')),
+              if(selectedFrequency=='daily') Text(t('dailyDateHint'))
+              else if(selectedFrequency=='weekly'||selectedFrequency=='biweekly') ...[
+                ListTile(contentPadding:EdgeInsets.zero,title:Text(t('firstPaymentDate')),subtitle:Text(dateOnly(firstPaymentDate)),trailing:const Icon(Icons.calendar_today),onTap:()async{final d=await showDatePicker(context:context,initialDate:firstPaymentDate,firstDate:DateTime.now().subtract(const Duration(days:1)),lastDate:DateTime(2100));if(d!=null)setDialogState(()=>firstPaymentDate=d);}),
+                Text(t('weeklyDateHint')),
+              ] else DropdownButtonFormField<int>(initialValue:selectedDay,decoration:InputDecoration(labelText:t('recurringDay')),items:List.generate(31,(i)=>DropdownMenuItem(value:i+1,child:Text('${i+1}'))),onChanged:(v)=>setDialogState(()=>selectedDay=v??1)),
+            ]),
             actions:[TextButton(onPressed:()=>Navigator.pop(c),child:Text(t('cancel'))),FilledButton(onPressed:(){
-              final list=payments;list[e.key]['day']=selectedDay;
-              // A changed day takes effect from today, without replaying past months.
-              list[e.key]['start_date']=DateTime.now().toIso8601String().substring(0,10);
+              final list=payments;list[e.key]['day']=selectedDay;list[e.key]['frequency']=selectedFrequency;
+              final now=DateTime.now();
+              list[e.key]['start_date']=dateOnly((selectedFrequency=='weekly'||selectedFrequency=='biweekly')?firstPaymentDate:firstRecurringDate(DateTime(now.year,now.month,now.day),selectedDay,selectedFrequency));
               data['monthly_payments']=list;Navigator.pop(c);applyMonthly();
             },child:Text(t('save')))])));
         }),
@@ -741,7 +815,7 @@ class _SettingsPanelState extends State<SettingsPanel> {
       widget.headingBuilder(t('settings')),
       widget.cardBuilder(Column(children:[
         TextField(controller:income,keyboardType:const TextInputType.numberWithOptions(decimal:true),decoration:InputDecoration(labelText:t('payAmount'))),
-        DropdownButtonFormField<String>(key:ValueKey('frequency-$incomeFrequency'),initialValue:['daily','weekly','biweekly','monthly'].contains(incomeFrequency)?incomeFrequency:'monthly',decoration:InputDecoration(labelText:t('payFrequency')),items:[DropdownMenuItem(value:'daily',child:Text(t('freqDaily'))),DropdownMenuItem(value:'weekly',child:Text(t('freqWeekly'))),DropdownMenuItem(value:'biweekly',child:Text(t('freqBiweekly'))),DropdownMenuItem(value:'monthly',child:Text(t('freqMonthly')))],onChanged:(v)=>setState(()=>incomeFrequency=v??'monthly')),
+        DropdownButtonFormField<String>(isExpanded:true,key:ValueKey('frequency-$incomeFrequency'),initialValue:['daily','weekly','biweekly','monthly','two_months','three_months'].contains(incomeFrequency)?incomeFrequency:'monthly',decoration:InputDecoration(labelText:t('payFrequency')),items:[DropdownMenuItem(value:'daily',child:Text(t('freqDaily'))),DropdownMenuItem(value:'weekly',child:Text(t('freqWeekly'))),DropdownMenuItem(value:'biweekly',child:Text(t('freqBiweekly'))),DropdownMenuItem(value:'monthly',child:Text(t('freqMonthly'))),DropdownMenuItem(value:'two_months',child:Text(t('freqTwoMonths'))),DropdownMenuItem(value:'three_months',child:Text(t('freqThreeMonths')))],onChanged:(v)=>setState(()=>incomeFrequency=v??'monthly')),
         TextField(controller:goal,keyboardType:const TextInputType.numberWithOptions(decimal:true),decoration:InputDecoration(labelText:t('goal'))),
         TextField(controller:monthlySavings,keyboardType:const TextInputType.numberWithOptions(decimal:true),decoration:InputDecoration(labelText:t('monthlySavings'))),
         Text(t('monthlySavingsHint')),
@@ -802,7 +876,7 @@ class _WelcomeWizardState extends State<WelcomeWizard> {
       controller.selection=TextSelection(baseOffset:0,extentOffset:controller.text.length);
     }
   }
-  int paymentDay=DateTime.now().day;
+  int paymentDay=DateTime.now().day;String paymentFrequency='monthly';DateTime firstBillDate=DateTime.now();
   final name=TextEditingController(),payment=TextEditingController();
   final List<Map<String,dynamic>> bills=[];
   @override void dispose(){income.dispose();opening.dispose();goal.dispose();monthlySavings.dispose();name.dispose();payment.dispose();super.dispose();}
@@ -823,16 +897,19 @@ class _WelcomeWizardState extends State<WelcomeWizard> {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text(word('Completa el nombre y el importe del pago, o deja ambos vacíos.','Complete the payment name and amount, or leave both blank.','Complétez le paiement ou laissez les deux champs vides.','Zahlung vervollständigen oder beide Felder leer lassen.','পেমেন্টের তথ্য পূরণ করুন বা ফাঁকা রাখুন।'))));
         return;
       }
-      bills.add({'name':pendingName,'amount':pendingAmount,'active':true,'day':paymentDay,'start_date':DateTime.now().toIso8601String().substring(0,10)});
-      name.clear();payment.clear();paymentDay=DateTime.now().day;
+      bills.add({'name':pendingName,'amount':pendingAmount,'active':true,'day':paymentDay,'frequency':paymentFrequency,'start_date':(paymentFrequency=='weekly'||paymentFrequency=='biweekly')?'${firstBillDate.year}-${firstBillDate.month.toString().padLeft(2,'0')}-${firstBillDate.day.toString().padLeft(2,'0')}':wizardFirstRecurringDate(paymentDay,paymentFrequency)});
+      name.clear();payment.clear();paymentDay=DateTime.now().day;paymentFrequency='monthly';
     }
     widget.onComplete({'language':language,'currency':currency,'monthly_income':parse(income.text)??0,'income_frequency':incomeFrequency,'income_start_date':payday.toIso8601String().substring(0,10),'opening_balance':parse(opening.text)??0,'savings_goal':parse(goal.text)??0,'monthly_savings':parse(monthlySavings.text)??0,'monthly_payments':bills});
   }
   @override Widget build(BuildContext context)=>Scaffold(appBar:AppBar(title:const Text('MafiFlow Mobile')),body:Center(child:ConstrainedBox(constraints:const BoxConstraints(maxWidth:540),child:ListView(padding:const EdgeInsets.all(24),children:[LinearProgressIndicator(value:(step+1)/4),const SizedBox(height:28),Text(word('¡Bienvenido a MafiFlow!','Welcome to MafiFlow!','Bienvenue sur MafiFlow !','Willkommen bei MafiFlow!','MafiFlow-তে স্বাগতম!'),style:Theme.of(context).textTheme.headlineSmall),const SizedBox(height:22),
     if(step==0)...[Text(word('Elige idioma y moneda','Choose language and currency','Choisissez langue et devise','Sprache und Währung wählen','ভাষা ও মুদ্রা নির্বাচন করুন')),DropdownButtonFormField<String>(initialValue:language,items:const [DropdownMenuItem(value:'es',child:Text('Español')),DropdownMenuItem(value:'en',child:Text('English')),DropdownMenuItem(value:'fr',child:Text('Français')),DropdownMenuItem(value:'de',child:Text('Deutsch')),DropdownMenuItem(value:'bn',child:Text('বাংলা'))],onChanged:(v)=>setState(()=>language=v??'es')),DropdownButtonFormField<String>(initialValue:currency,items:['USD','CAD','EUR','GBP','BDT'].map((v)=>DropdownMenuItem(value:v,child:Text(v))).toList(),onChanged:(v)=>setState(()=>currency=v??'USD'))],
-    if(step==1)...[Text(word('Configura tus finanzas iniciales','Set up your starting finances','Configurez vos finances','Finanzen einrichten','প্রাথমিক অর্থ সেট করুন')),TextField(controller:income,onTap:()=>selectInitialZero(income),keyboardType:const TextInputType.numberWithOptions(decimal:true),decoration:InputDecoration(labelText:word('Cantidad que recibes por pago','Amount per payday','Montant par paie','Betrag pro Zahlung','প্রতি বেতনের পরিমাণ'))),DropdownButtonFormField<String>(initialValue:incomeFrequency,decoration:InputDecoration(labelText:word('¿Cada cuánto cobras?','How often are you paid?','À quelle fréquence êtes-vous payé ?','Wie oft wirst du bezahlt?','কত ঘন ঘন বেতন পান?')),items:[DropdownMenuItem(value:'daily',child:Text(word('Diariamente','Daily','Chaque jour','Täglich','প্রতিদিন'))),DropdownMenuItem(value:'weekly',child:Text(word('Semanalmente','Weekly','Chaque semaine','Wöchentlich','প্রতি সপ্তাহে'))),DropdownMenuItem(value:'biweekly',child:Text(word('Cada 2 semanas','Every 2 weeks','Toutes les 2 semaines','Alle 2 Wochen','প্রতি ২ সপ্তাহে'))),DropdownMenuItem(value:'monthly',child:Text(word('Mensualmente','Monthly','Chaque mois','Monatlich','প্রতি মাসে')))],onChanged:(v)=>setState(()=>incomeFrequency=v??'monthly')),const SizedBox(height:8),ListTile(contentPadding:EdgeInsets.zero,title:Text(word('Fecha del próximo cobro','Next payday','Date du premier paiement','Erster Zahltag','প্রথম বেতনের তারিখ')),subtitle:Text('${payday.year}-${payday.month.toString().padLeft(2,'0')}-${payday.day.toString().padLeft(2,'0')}'),trailing:const Icon(Icons.calendar_today),onTap:()async{final chosen=await showDatePicker(context:context,initialDate:payday,firstDate:DateTime(2020),lastDate:DateTime(2100));if(chosen!=null)setState(()=>payday=chosen);}),TextField(controller:opening,onTap:()=>selectInitialZero(opening),keyboardType:const TextInputType.numberWithOptions(decimal:true),decoration:InputDecoration(labelText:word('Saldo disponible ahora (no se suma al salario)','Available balance now (not added to salary)','Solde actuel (pas un revenu)','Aktueller Kontostand (kein Einkommen)','বর্তমান ব্যালেন্স')))],
+    if(step==1)...[Text(word('Configura tus finanzas iniciales','Set up your starting finances','Configurez vos finances','Finanzen einrichten','প্রাথমিক অর্থ সেট করুন')),TextField(controller:income,onTap:()=>selectInitialZero(income),keyboardType:const TextInputType.numberWithOptions(decimal:true),decoration:InputDecoration(labelText:word('Cantidad que recibes por pago','Amount per payday','Montant par paie','Betrag pro Zahlung','প্রতি বেতনের পরিমাণ'))),DropdownButtonFormField<String>(isExpanded:true,initialValue:incomeFrequency,decoration:InputDecoration(labelText:word('¿Cada cuánto cobras?','How often are you paid?','À quelle fréquence êtes-vous payé ?','Wie oft wirst du bezahlt?','কত ঘন ঘন বেতন পান?')),items:[DropdownMenuItem(value:'daily',child:Text(word('Diariamente','Daily','Chaque jour','Täglich','প্রতিদিন'))),DropdownMenuItem(value:'weekly',child:Text(word('Semanalmente','Weekly','Chaque semaine','Wöchentlich','প্রতি সপ্তাহে'))),DropdownMenuItem(value:'biweekly',child:Text(word('Cada 2 semanas','Every 2 weeks','Toutes les 2 semaines','Alle 2 Wochen','প্রতি ২ সপ্তাহে'))),DropdownMenuItem(value:'monthly',child:Text(word('Mensualmente','Monthly','Chaque mois','Monatlich','প্রতি মাসে'))),DropdownMenuItem(value:'two_months',child:Text(word('Cada 2 meses','Every 2 months','Tous les 2 mois','Alle 2 Monate','প্রতি ২ মাসে'))),DropdownMenuItem(value:'three_months',child:Text(word('Cada 3 meses','Every 3 months','Tous les 3 mois','Alle 3 Monate','প্রতি ৩ মাসে')))],onChanged:(v)=>setState(()=>incomeFrequency=v??'monthly')),const SizedBox(height:8),ListTile(contentPadding:EdgeInsets.zero,title:Text(word('Fecha del próximo cobro','Next payday','Date du premier paiement','Erster Zahltag','প্রথম বেতনের তারিখ')),subtitle:Text('${payday.year}-${payday.month.toString().padLeft(2,'0')}-${payday.day.toString().padLeft(2,'0')}'),trailing:const Icon(Icons.calendar_today),onTap:()async{final chosen=await showDatePicker(context:context,initialDate:payday,firstDate:DateTime(2020),lastDate:DateTime(2100));if(chosen!=null)setState(()=>payday=chosen);}),TextField(controller:opening,onTap:()=>selectInitialZero(opening),keyboardType:const TextInputType.numberWithOptions(decimal:true),decoration:InputDecoration(labelText:word('Saldo disponible ahora (no se suma al salario)','Available balance now (not added to salary)','Solde actuel (pas un revenu)','Aktueller Kontostand (kein Einkommen)','বর্তমান ব্যালেন্স')))],
     if(step==2)...[TextField(controller:monthlySavings,onTap:()=>selectInitialZero(monthlySavings),keyboardType:const TextInputType.numberWithOptions(decimal:true),decoration:InputDecoration(labelText:word('¿Cuánto quieres ahorrar al mes?','How much to save monthly?','Combien épargner par mois ?','Monatlicher Sparbetrag','মাসিক সঞ্চয়'))),TextField(controller:goal,onTap:()=>selectInitialZero(goal),keyboardType:const TextInputType.numberWithOptions(decimal:true),decoration:InputDecoration(labelText:word('¿Cuál es tu objetivo total de ahorro?','Total savings target','Objectif total d’épargne','Gesamtsparziel','মোট সঞ্চয়ের লক্ষ্য'))),const SizedBox(height:12),Text(word('Mensualmente este dinero se descontará automáticamente del dinero disponible hasta llegar a tu objetivo.','Each month this amount will automatically be deducted from available money until you reach your goal.','Chaque mois, ce montant sera déduit de votre solde disponible jusqu’à votre objectif.','Jeden Monat wird dieser Betrag vom verfügbaren Geld abgezogen, bis das Ziel erreicht ist.','লক্ষ্য পূরণ না হওয়া পর্যন্ত প্রতি মাসে উপলব্ধ অর্থ থেকে এই পরিমাণ বাদ যাবে।'))],
-    if(step==3)...[Text(word('Agrega tus gastos fijos (opcional)','Add recurring expenses (optional)','Ajoutez les dépenses récurrentes','Wiederkehrende Ausgaben','নিয়মিত খরচ যোগ করুন')),TextField(controller:name,decoration:InputDecoration(labelText:word('Nombre del gasto','Expense name','Nom de la dépense','Ausgabenname','খরচের নাম'))),TextField(controller:payment,keyboardType:const TextInputType.numberWithOptions(decimal:true),decoration:InputDecoration(labelText:word('Cantidad mensual','Monthly amount','Montant mensuel','Monatlicher Betrag','মাসিক পরিমাণ'))),DropdownButtonFormField<int>(initialValue:paymentDay,decoration:InputDecoration(labelText:word('Día de cobro mensual','Monthly charge day','Jour du prélèvement','Monatlicher Abbuchungstag','মাসিক পেমেন্টের দিন')),items:List.generate(31,(i)=>DropdownMenuItem(value:i+1,child:Text('${i+1}'))),onChanged:(v)=>setState(()=>paymentDay=v??1)),const SizedBox(height:8),TextButton.icon(onPressed:(){final n=parse(payment.text);if(name.text.trim().isEmpty||n==null||n<=0)return;setState((){bills.add({'name':name.text.trim(),'amount':n,'active':true,'day':paymentDay,'start_date':DateTime.now().toIso8601String().substring(0,10)});name.clear();payment.clear();paymentDay=DateTime.now().day;});},icon:const Icon(Icons.add),label:Text(word('Agregar pago','Add payment','Ajouter','Hinzufügen','যোগ করুন'))),...bills.map((b)=>ListTile(title:Text('${b['name']}'),trailing:Text('${b['amount']}')))],
+    if(step==3)...[Text(word('Agrega tus gastos fijos (opcional)','Add recurring expenses (optional)','Ajoutez les dépenses récurrentes','Wiederkehrende Ausgaben','নিয়মিত খরচ যোগ করুন')),TextField(controller:name,decoration:InputDecoration(labelText:word('Nombre del gasto','Expense name','Nom de la dépense','Ausgabenname','খরচের নাম'))),TextField(controller:payment,keyboardType:const TextInputType.numberWithOptions(decimal:true),decoration:InputDecoration(labelText:word('Cantidad por pago','Amount per payment','Montant par paiement','Betrag pro Zahlung','প্রতি পেমেন্টের পরিমাণ'))),DropdownButtonFormField<String>(isExpanded:true,key:ValueKey('wizard-payment-$paymentFrequency'),initialValue:paymentFrequency,decoration:InputDecoration(labelText:word('¿Cada cuánto se repite este pago?','How often does this payment repeat?','À quelle fréquence ce paiement se répète-t-il ?','Wie oft wird diese Zahlung wiederholt?','এই পেমেন্ট কত ঘন ঘন হবে?')),items:[DropdownMenuItem(value:'daily',child:Text(word('Diariamente','Daily','Chaque jour','Täglich','প্রতিদিন'))),DropdownMenuItem(value:'weekly',child:Text(word('Semanalmente','Weekly','Chaque semaine','Wöchentlich','প্রতি সপ্তাহে'))),DropdownMenuItem(value:'biweekly',child:Text(word('Cada 2 semanas','Every 2 weeks','Toutes les 2 semaines','Alle 2 Wochen','প্রতি ২ সপ্তাহে'))),DropdownMenuItem(value:'monthly',child:Text(word('Mensualmente','Monthly','Chaque mois','Monatlich','প্রতি মাসে'))),DropdownMenuItem(value:'two_months',child:Text(word('Cada 2 meses','Every 2 months','Tous les 2 mois','Alle 2 Monate','প্রতি ২ মাসে'))),DropdownMenuItem(value:'three_months',child:Text(word('Cada 3 meses','Every 3 months','Tous les 3 mois','Alle 3 Monate','প্রতি ৩ মাসে')))],onChanged:(v)=>setState(()=>paymentFrequency=v??'monthly')),
+    if(paymentFrequency=='daily') Text(word('Comienza hoy y se repite todos los días','Starts today and repeats daily','Commence aujourd’hui et se répète chaque jour','Beginnt heute und wiederholt sich täglich','আজ থেকে প্রতিদিন পুনরাবৃত্তি হবে'))
+    else if(paymentFrequency=='weekly'||paymentFrequency=='biweekly') ListTile(title:Text(word('Fecha del primer pago','First payment date','Date du premier paiement','Datum der ersten Zahlung','প্রথম পেমেন্টের তারিখ')),subtitle:Text('${firstBillDate.year}-${firstBillDate.month.toString().padLeft(2,'0')}-${firstBillDate.day.toString().padLeft(2,'0')}'),trailing:const Icon(Icons.calendar_today),onTap:()async{final d=await showDatePicker(context:context,initialDate:firstBillDate,firstDate:DateTime.now().subtract(const Duration(days:1)),lastDate:DateTime(2100));if(d!=null)setState(()=>firstBillDate=d);})
+    else DropdownButtonFormField<int>(initialValue:paymentDay,decoration:InputDecoration(labelText:word('Día del pago','Payment day','Jour du paiement','Zahlungstag','পেমেন্টের দিন')),items:List.generate(31,(i)=>DropdownMenuItem(value:i+1,child:Text('${i+1}'))),onChanged:(v)=>setState(()=>paymentDay=v??1)),const SizedBox(height:8),TextButton.icon(onPressed:(){final n=parse(payment.text);if(name.text.trim().isEmpty||n==null||n<=0)return;setState((){bills.add({'name':name.text.trim(),'amount':n,'active':true,'day':paymentDay,'frequency':paymentFrequency,'start_date':(paymentFrequency=='weekly'||paymentFrequency=='biweekly')?'${firstBillDate.year}-${firstBillDate.month.toString().padLeft(2,'0')}-${firstBillDate.day.toString().padLeft(2,'0')}':wizardFirstRecurringDate(paymentDay,paymentFrequency)});name.clear();payment.clear();paymentDay=DateTime.now().day;paymentFrequency='monthly';});},icon:const Icon(Icons.add),label:Text(word('Agregar pago','Add payment','Ajouter','Hinzufügen','যোগ করুন'))),...bills.map((b)=>ListTile(title:Text('${b['name']}'),trailing:Text('${b['amount']}')))],
     const SizedBox(height:30),Row(children:[if(step>0)TextButton(onPressed:()=>setState(()=>step--),child:Text(word('Atrás','Back','Retour','Zurück','পেছনে'))),const Spacer(),FilledButton(onPressed:next,child:Text(step==3?word('Empezar','Get started','Commencer','Starten','শুরু করুন'):word('Continuar','Continue','Continuer','Weiter','চালিয়ে যান')))])]))));
 }
 
@@ -988,11 +1065,14 @@ class _CalculatorDialogState extends State<CalculatorDialog> {
 
   @override
   Widget build(BuildContext context) {
-    const background = Color(0xFF101012);
-    const normal = Color(0xFF1D1D20);
-    const operation = Color(0xFF303033);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final background = isDark ? const Color(0xFF101012) : const Color(0xFFF8F9FA);
+    final normal = isDark ? const Color(0xFF1D1D20) : const Color(0xFFE7E9EC);
+    final operation = isDark ? const Color(0xFF303033) : const Color(0xFFD6DADF);
     const accent = Color(0xFF188B7E);
-    const danger = Color(0xFFE97579);
+    final danger = isDark ? const Color(0xFFE97579) : const Color(0xFFB32632);
+    final foreground = isDark ? Colors.white : const Color(0xFF17191C);
+    final muted = isDark ? Colors.white70 : const Color(0xFF525861);
     final rows = <List<String>>[
       ['C', '⌫', '%', '÷'],
       ['7', '8', '9', '×'],
@@ -1010,8 +1090,8 @@ class _CalculatorDialogState extends State<CalculatorDialog> {
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 18),
           child: Column(mainAxisSize: MainAxisSize.min, children: [
             Row(children: [
-              Expanded(child: Text(widget.title, style: const TextStyle(color: Colors.white70, fontSize: 15))),
-              IconButton(onPressed: () => Navigator.pop(context), icon: const Icon(Icons.close, color: Colors.white70)),
+              Expanded(child: Text(widget.title, style: TextStyle(color: muted, fontSize: 15))),
+              IconButton(onPressed: () => Navigator.pop(context), icon: Icon(Icons.close, color: muted)),
             ]),
             SizedBox(
               height: 146,
@@ -1022,12 +1102,12 @@ class _CalculatorDialogState extends State<CalculatorDialog> {
                   child: Align(alignment: Alignment.centerRight, child: Text(
                     expression.isEmpty ? '0' : expression,
                     maxLines: 1,
-                    style: const TextStyle(fontSize: 39, color: Colors.white, fontWeight: FontWeight.w400),
+                    style: TextStyle(fontSize: 39, color: foreground, fontWeight: FontWeight.w400),
                   )),
                 )),
                 const SizedBox(height: 4),
                 Text(preview, textAlign: TextAlign.right,
-                  style: const TextStyle(fontSize: 27, color: Color(0xFF99999F))),
+                  style: TextStyle(fontSize: 27, color: muted)),
                 const SizedBox(height: 12),
               ]),
             ),
@@ -1047,7 +1127,7 @@ class _CalculatorDialogState extends State<CalculatorDialog> {
                             child: Center(child: row[i] == '⌫'
                               ? const Icon(Icons.backspace_outlined, color: danger, size: 28)
                               : Text(row[i], style: TextStyle(
-                                  color: row[i] == 'C' ? danger : Colors.white,
+                                  color: row[i] == 'C' ? danger : row[i] == '=' ? Colors.white : foreground,
                                   fontSize: row[i] == '()' ? 24 : 32,
                                   fontWeight: FontWeight.w400,
                                 )),
