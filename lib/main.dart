@@ -836,40 +836,234 @@ class _WelcomeWizardState extends State<WelcomeWizard> {
     const SizedBox(height:30),Row(children:[if(step>0)TextButton(onPressed:()=>setState(()=>step--),child:Text(word('Atrás','Back','Retour','Zurück','পেছনে'))),const Spacer(),FilledButton(onPressed:next,child:Text(step==3?word('Empezar','Get started','Commencer','Starten','শুরু করুন'):word('Continuar','Continue','Continuer','Weiter','চালিয়ে যান')))])]))));
 }
 
-class CalculatorDialog extends StatefulWidget {const CalculatorDialog({super.key,required this.title});final String title;@override State<CalculatorDialog> createState()=>_CalculatorDialogState();}
+class CalculatorDialog extends StatefulWidget {
+  const CalculatorDialog({super.key, required this.title});
+  final String title;
+  @override
+  State<CalculatorDialog> createState() => _CalculatorDialogState();
+}
+
+// Parses arithmetic without evaluating source code. Supports operator precedence,
+// parentheses, unary minus and percentage.
+class _MafiCalculatorParser {
+  _MafiCalculatorParser(this.source);
+  final String source;
+  int index = 0;
+
+  void skipSpaces() {
+    while (index < source.length && source[index] == ' ') { index++; }
+  }
+  bool take(String character) {
+    skipSpaces();
+    if (index < source.length && source[index] == character) {
+      index++;
+      return true;
+    }
+    return false;
+  }
+  double parse() {
+    final result = addition();
+    skipSpaces();
+    if (index != source.length || !result.isFinite) {
+      throw const FormatException('Invalid expression');
+    }
+    return result;
+  }
+  double addition() {
+    var result = multiplication();
+    while (true) {
+      if (take('+')) { result += multiplication(); }
+      else if (take('−')) { result -= multiplication(); }
+      else { return result; }
+    }
+  }
+  double multiplication() {
+    var result = unary();
+    while (true) {
+      if (take('×')) { result *= unary(); }
+      else if (take('÷')) { result /= unary(); }
+      else { return result; }
+    }
+  }
+  double unary() {
+    if (take('−')) return -unary();
+    if (take('+')) return unary();
+    var result = primary();
+    while (take('%')) { result /= 100; }
+    return result;
+  }
+  double primary() {
+    if (take('(')) {
+      final result = addition();
+      if (!take(')')) throw const FormatException('Missing closing parenthesis');
+      return result;
+    }
+    skipSpaces();
+    final start = index;
+    var hasDot = false;
+    while (index < source.length) {
+      final c = source[index];
+      if (c == '.') {
+        if (hasDot) break;
+        hasDot = true;
+        index++;
+      } else if ('0123456789'.contains(c)) {
+        index++;
+      } else { break; }
+    }
+    if (start == index) throw const FormatException('Missing number');
+    return double.parse(source.substring(start, index));
+  }
+}
+
 class _CalculatorDialogState extends State<CalculatorDialog> {
-  String display='0',operator='',previous='';bool resetNext=false;
-  String format(double value)=>value.isFinite
-      ?(value==value.roundToDouble()?value.toInt().toString():value.toStringAsFixed(6).replaceFirst(RegExp(r'0+$'),'').replaceFirst(RegExp(r'\.$'),''))
-      :'Error';
-  double evaluate(double a,double b,String op)=>switch(op){
-    '+'=>a+b,'−'=>a-b,'×'=>a*b,'÷'=>b==0?double.nan:a/b,_=>b,
-  };
-  void press(String key){setState((){
-    if(key=='C'){display='0';operator='';previous='';resetNext=false;return;}
-    if(key=='⌫'){
-      if(resetNext){resetNext=false;return;}
-      display=display.length>1?display.substring(0,display.length-1):'0';
-      if(display=='-'||display.isEmpty)display='0';
-      return;
+  String expression = '';
+  bool justCalculated = false;
+
+  String format(double value) {
+    if (!value.isFinite) return 'Error';
+    if (value == 0) return '0';
+    if (value.abs() < 1e13 && value == value.truncateToDouble()) {
+      return value.toInt().toString();
     }
-    if(['+','−','×','÷'].contains(key)){
-      if(operator.isNotEmpty&&!resetNext){
-        final a=double.tryParse(previous),b=double.tryParse(display);
-        if(a!=null&&b!=null)display=format(evaluate(a,b,operator));
+    final formatted = value.toStringAsPrecision(12);
+    if (formatted.contains('e') || formatted.contains('E')) return formatted;
+    return formatted.replaceFirst(RegExp(r'0+$'), '').replaceFirst(RegExp(r'\.$'), '');
+  }
+
+  String get preview {
+    if (expression.isEmpty) return '';
+    try { return format(_MafiCalculatorParser(expression).parse()); }
+    on FormatException { return ''; }
+    catch (_) { return ''; }
+  }
+
+  void press(String key) {
+    setState(() {
+      if (key == 'C') { expression = ''; justCalculated = false; return; }
+      if (key == '⌫') {
+        if (expression.isNotEmpty) expression = expression.substring(0, expression.length - 1);
+        justCalculated = false;
+        return;
       }
-      if(display=='Error'){operator='';previous='';resetNext=true;return;}
-      previous=display;operator=key;resetNext=true;return;
-    }
-    if(key=='='){
-      final a=double.tryParse(previous),b=double.tryParse(display);
-      if(a==null||b==null||operator.isEmpty)return;
-      display=format(evaluate(a,b,operator));
-      operator='';previous='';resetNext=true;return;
-    }
-    if(resetNext||display=='0'||display=='Error'){
-      display=key=='.'?'0.':key;resetNext=false;
-    }else if(key!='.'||!display.contains('.')){display+=key;}
-  });}
-  @override Widget build(BuildContext context)=>AlertDialog(title:Text(widget.title),content:SizedBox(width:300,child:Column(mainAxisSize:MainAxisSize.min,children:[Align(alignment:Alignment.centerRight,child:SelectableText(display,style:Theme.of(context).textTheme.headlineMedium)),const SizedBox(height:14),for(final row in [['7','8','9','÷'],['4','5','6','×'],['1','2','3','−'],['C','0','.','+'],['⌫','=']])Row(children:[for(final key in row)Expanded(child:Padding(padding:const EdgeInsets.all(3),child:FilledButton.tonal(onPressed:()=>press(key),child:Text(key))))])])),actions:[TextButton(onPressed:()=>Navigator.pop(context),child:const Text('OK'))]);
+      if (key == '=') {
+        final answer = preview;
+        if (answer.isNotEmpty && answer != 'Error') {
+          expression = answer.startsWith('-') ? '−${answer.substring(1)}' : answer;
+          justCalculated = true;
+        }
+        return;
+      }
+      if (key == '()') {
+        final opening = '('.allMatches(expression).length;
+        final closing = ')'.allMatches(expression).length;
+        final shouldClose = opening > closing && expression.isNotEmpty &&
+            (RegExp(r'[0-9)%]$').hasMatch(expression));
+        expression += shouldClose ? ')' : '(';
+        justCalculated = false;
+        return;
+      }
+      final isOperator = ['+', '−', '×', '÷'].contains(key);
+      if (justCalculated && !isOperator && key != '%') expression = '';
+      justCalculated = false;
+      if (isOperator) {
+        if (expression.isEmpty) {
+          if (key == '−') expression = '−';
+          return;
+        }
+        if (['+', '−', '×', '÷'].any((op) => expression.endsWith(op))) {
+          expression = expression.substring(0, expression.length - 1) + key;
+        } else { expression += key; }
+        return;
+      }
+      if (key == '.') {
+        final last = expression.split(RegExp(r'[+−×÷()%]')).last;
+        if (last.contains('.')) return;
+        if (last.isEmpty) expression += '0';
+      }
+      if (key == '%' && (expression.isEmpty || !RegExp(r'[0-9)]$').hasMatch(expression))) return;
+      expression += key;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    const background = Color(0xFF101012);
+    const normal = Color(0xFF1D1D20);
+    const operation = Color(0xFF303033);
+    const accent = Color(0xFF188B7E);
+    const danger = Color(0xFFE97579);
+    final rows = <List<String>>[
+      ['C', '⌫', '%', '÷'],
+      ['7', '8', '9', '×'],
+      ['4', '5', '6', '−'],
+      ['1', '2', '3', '+'],
+      ['()', '0', '.', '='],
+    ];
+    return Dialog(
+      backgroundColor: background,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 18),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 410),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 18),
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            Row(children: [
+              Expanded(child: Text(widget.title, style: const TextStyle(color: Colors.white70, fontSize: 15))),
+              IconButton(onPressed: () => Navigator.pop(context), icon: const Icon(Icons.close, color: Colors.white70)),
+            ]),
+            SizedBox(
+              height: 146,
+              child: Column(crossAxisAlignment: CrossAxisAlignment.end, mainAxisAlignment: MainAxisAlignment.end, children: [
+                SizedBox(width: double.infinity, height: 75, child: SingleChildScrollView(
+                  reverse: true,
+                  scrollDirection: Axis.horizontal,
+                  child: Align(alignment: Alignment.centerRight, child: Text(
+                    expression.isEmpty ? '0' : expression,
+                    maxLines: 1,
+                    style: const TextStyle(fontSize: 39, color: Colors.white, fontWeight: FontWeight.w400),
+                  )),
+                )),
+                const SizedBox(height: 4),
+                Text(preview, textAlign: TextAlign.right,
+                  style: const TextStyle(fontSize: 27, color: Color(0xFF99999F))),
+                const SizedBox(height: 12),
+              ]),
+            ),
+            LayoutBuilder(builder: (context, constraints) {
+              final buttonSize = (constraints.maxWidth - 3 * 10) / 4;
+              return Column(children: [
+                for (final row in rows) ...[
+                  Row(children: [
+                    for (var i = 0; i < row.length; i++) ...[
+                      if (i > 0) const SizedBox(width: 10),
+                      SizedBox(width: buttonSize, height: buttonSize,
+                        child: Material(
+                          color: row[i] == '=' ? accent : (i == 3 ? operation : normal),
+                          shape: const CircleBorder(),
+                          clipBehavior: Clip.antiAlias,
+                          child: InkWell(onTap: () => press(row[i]),
+                            child: Center(child: row[i] == '⌫'
+                              ? const Icon(Icons.backspace_outlined, color: danger, size: 28)
+                              : Text(row[i], style: TextStyle(
+                                  color: row[i] == 'C' ? danger : Colors.white,
+                                  fontSize: row[i] == '()' ? 24 : 32,
+                                  fontWeight: FontWeight.w400,
+                                )),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ]),
+                  if (row != rows.last) const SizedBox(height: 10),
+                ],
+              ]);
+            }),
+          ]),
+        ),
+      ),
+    );
+  }
 }
