@@ -644,7 +644,7 @@ class _MafiFlowAppState extends State<MafiFlowApp> {
     } catch (_) {if(mounted)notice(t('invalidBackup'));}
   }
   Widget settings()=>SettingsPanel(
-    data:data, t:t, scrollBuilder:scroll, cardBuilder:card, headingBuilder:heading,
+    active:tab==5, data:data, t:t, scrollBuilder:scroll, cardBuilder:card, headingBuilder:heading,
     onManageCategories:manageCategories, onImportBackup:importBackup,
     onExportBackup:() async {
       final copy=Map<String,dynamic>.from(data)..['ai_api_key']='';
@@ -666,10 +666,11 @@ class _MafiFlowAppState extends State<MafiFlowApp> {
 // Keep the form state alive while other tabs rebuild. Never recreate text
 // controllers during build: doing so discarded edits when a field lost focus.
 class SettingsPanel extends StatefulWidget {
-  const SettingsPanel({super.key,required this.data,required this.t,
+  const SettingsPanel({super.key,required this.active,required this.data,required this.t,
     required this.scrollBuilder,required this.cardBuilder,required this.headingBuilder,
     required this.onManageCategories,required this.onImportBackup,
     required this.onExportBackup,required this.onSave,required this.onInvalid});
+  final bool active;
   final Map<String,dynamic> data;
   final String Function(String) t;
   final Widget Function(List<Widget>) scrollBuilder;
@@ -685,19 +686,39 @@ class SettingsPanel extends StatefulWidget {
 class _SettingsPanelState extends State<SettingsPanel> {
   late final TextEditingController income,goal,monthlySavings,api,model,url;
   late String currency,incomeFrequency,provider,lang,theme;
-  @override void initState(){super.initState();
+  @override void initState(){
+    super.initState();
+    income=TextEditingController();
+    goal=TextEditingController();
+    monthlySavings=TextEditingController();
+    api=TextEditingController();
+    model=TextEditingController();
+    url=TextEditingController();
+    restoreSavedSettings();
+  }
+  // Load the last committed values, discarding any unsaved draft.
+  // Only call when leaving/re-entering Settings, not during typing.
+  void restoreSavedSettings(){
     final d=widget.data;
-    income=TextEditingController(text:'${d['monthly_income']??0}');
-    goal=TextEditingController(text:'${d['savings_goal']??0}');
-    monthlySavings=TextEditingController(text:'${d['monthly_savings']??0}');
-    api=TextEditingController(text:'${d['ai_api_key']??''}');
-    model=TextEditingController(text:'${d['ai_model']??''}');
-    url=TextEditingController(text:'${d['ai_base_url']??''}');
+    income.text='${d['monthly_income']??0}';
+    goal.text='${d['savings_goal']??0}';
+    monthlySavings.text='${d['monthly_savings']??0}';
+    api.text='${d['ai_api_key']??''}';
+    model.text='${d['ai_model']??''}';
+    url.text='${d['ai_base_url']??''}';
     currency='${d['currency']??'USD'}';
     incomeFrequency='${d['income_frequency']??'monthly'}';
     provider='${d['ai_provider']??'OpenAI'}';
     lang='${d['language']??'es'}';
     theme='${d['theme']??'light'}';
+  }
+  @override void didUpdateWidget(covariant SettingsPanel oldWidget){
+    super.didUpdateWidget(oldWidget);
+    // IndexedStack keeps Settings alive while another tab is selected.
+    // When the tab changes, reload only committed data, never drafts.
+    if(oldWidget.active != widget.active || !identical(oldWidget.data,widget.data)){
+      restoreSavedSettings();
+    }
   }
   @override void dispose(){for(final c in [income,goal,monthlySavings,api,model,url]){c.dispose();}super.dispose();}
   double? amount(String raw){final v=double.tryParse(raw.trim().replaceAll(',','.'));return v!=null&&v.isFinite&&v>=0?v:null;}
