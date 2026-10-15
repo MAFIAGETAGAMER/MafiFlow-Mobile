@@ -269,7 +269,7 @@ jobs:
           if-no-files-found: error
 
       - name: Build signed Google Play AAB
-        run: flutter build appbundle --release --build-name=1.0.1 --build-number=12
+        run: flutter build appbundle --release --build-name=1.0.1 --build-number=13
 
       - name: Verify AAB signature
         run: |
