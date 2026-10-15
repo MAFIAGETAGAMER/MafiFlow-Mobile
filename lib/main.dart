@@ -643,7 +643,104 @@ class _MafiFlowAppState extends State<MafiFlowApp> {
       notice(t('imported'));
     } catch (_) {if(mounted)notice(t('invalidBackup'));}
   }
-  Widget settings(){final opening=TextEditingController(text:'${data['opening_balance']??0}');String currency='${data['currency']??'USD'}';final income=TextEditingController(text:'${data['monthly_income']}'),goal=TextEditingController(text:'${data['savings_goal']}'),monthlySavings=TextEditingController(text:'${data['monthly_savings']??0}'),api=TextEditingController(text:'${data['ai_api_key']}'),model=TextEditingController(text:'${data['ai_model']}'),url=TextEditingController(text:'${data['ai_base_url']}');String incomeFrequency='${data['income_frequency']??'monthly'}';String provider='${data['ai_provider']}';String lang='${data['language']}';String theme='${data['theme']}';return StatefulBuilder(builder:(c,update)=>scroll([heading(t('settings')),card(Column(children:[TextField(controller:income,keyboardType:TextInputType.number,decoration:InputDecoration(labelText:t('payAmount'))),DropdownButtonFormField<String>(initialValue:['daily','weekly','biweekly','monthly'].contains(incomeFrequency)?incomeFrequency:'monthly',decoration:InputDecoration(labelText:t('payFrequency')),items:[DropdownMenuItem(value:'daily',child:Text(t('freqDaily'))),DropdownMenuItem(value:'weekly',child:Text(t('freqWeekly'))),DropdownMenuItem(value:'biweekly',child:Text(t('freqBiweekly'))),DropdownMenuItem(value:'monthly',child:Text(t('freqMonthly')))],onChanged:(v)=>update(()=>incomeFrequency=v??'monthly')),TextField(controller:goal,keyboardType:TextInputType.number,decoration:InputDecoration(labelText:t('goal'))),TextField(controller:monthlySavings,keyboardType:TextInputType.number,decoration:InputDecoration(labelText:t('monthlySavings'))),Text(t('monthlySavingsHint')),TextField(controller:opening,keyboardType:TextInputType.number,decoration:InputDecoration(labelText:t('opening'))),DropdownButtonFormField<String>(initialValue:currency,decoration:InputDecoration(labelText:t('currency')),items:['USD','CAD','EUR','GBP','BDT'].map((v)=>DropdownMenuItem(value:v,child:Text(v))).toList(),onChanged:(v)=>update(()=>currency=v??'USD')),DropdownButtonFormField<String>(initialValue:['OpenAI','NVIDIA','Custom'].contains(provider)?provider:'OpenAI',decoration:InputDecoration(labelText:t('provider')),items:['OpenAI','NVIDIA','Custom'].map((e)=>DropdownMenuItem(value:e,child:Text(e))).toList(),onChanged:(v)=>update(()=>provider=v!)),TextField(controller:api,obscureText:true,decoration:InputDecoration(labelText:t('key'))),TextField(controller:model,decoration:InputDecoration(labelText:t('model'))),TextField(controller:url,decoration:InputDecoration(labelText:t('custom'))),DropdownButtonFormField<String>(initialValue:const ['es','en','fr','de','bn'].contains(lang)?lang:'es',decoration:InputDecoration(labelText:t('language')),items:const [DropdownMenuItem(value:'es',child:Text('Español')),DropdownMenuItem(value:'en',child:Text('English')),DropdownMenuItem(value:'fr',child:Text('Français')),DropdownMenuItem(value:'de',child:Text('Deutsch')),DropdownMenuItem(value:'bn',child:Text('বাংলা'))],onChanged:(v)=>update(()=>lang=v!)),DropdownButtonFormField<String>(initialValue:theme,decoration:InputDecoration(labelText:t('theme')),items:[DropdownMenuItem(value:'light',child:Text(t('light'))),DropdownMenuItem(value:'dark',child:Text(t('dark')))],onChanged:(v)=>update(()=>theme=v!)),const SizedBox(height:12),FilledButton(onPressed:(){final inc=double.tryParse(income.text.replaceAll(',','.'));final sav=double.tryParse(goal.text.replaceAll(',','.'));final monthlySav=double.tryParse(monthlySavings.text.replaceAll(',','.'));if(inc==null||sav==null||monthlySav==null||monthlySav<0||!monthlySav.isFinite||double.tryParse(opening.text.replaceAll(',','.'))==null||!inc.isFinite||!sav.isFinite||inc<0||sav<0){notice(t('invalid'));return;}data.addAll({'monthly_income':inc,'income_frequency':incomeFrequency,'income_start_date':incomeFrequency=='${data['income_frequency']??'monthly'}'?data['income_start_date']:DateTime.now().toIso8601String().substring(0,10),'savings_goal':sav,'monthly_savings':monthlySav,'opening_balance':double.parse(opening.text.replaceAll(',','.')),'currency':currency,'ai_provider':provider,'ai_api_key':api.text.trim(),'ai_model':model.text.trim(),'ai_base_url':url.text.trim(),'language':lang,'theme':theme});applySavingsMonthly();save();notice(t('settingsSaved'));},child:Text(t('save')))])),card(Column(children:[ListTile(leading:const Icon(Icons.category_outlined),title:Text(t('manageCategories')),onTap:manageCategories),ListTile(leading:const Icon(Icons.copy),title:Text(t('export')),onTap:()async{final copy=Map<String,dynamic>.from(data)..['ai_api_key']='';await Clipboard.setData(ClipboardData(text:const JsonEncoder.withIndent('  ').convert(copy)));notice(t('backup'));}),ListTile(leading:const Icon(Icons.download),title:Text(t('import')),onTap:importBackup)]))]));}
+  Widget settings()=>SettingsPanel(
+    data:data, t:t, scrollBuilder:scroll, cardBuilder:card, headingBuilder:heading,
+    onManageCategories:manageCategories, onImportBackup:importBackup,
+    onExportBackup:() async {
+      final copy=Map<String,dynamic>.from(data)..['ai_api_key']='';
+      await Clipboard.setData(ClipboardData(text:const JsonEncoder.withIndent('  ').convert(copy)));
+      notice(t('backup'));
+    },
+    onSave:(values) async {
+      data.addAll(values);
+      applySavingsMonthly();
+      await save();
+      notice(t('settingsSaved'));
+    },
+    onInvalid:()=>notice(t('invalid')),
+  );
+
+}
+
+
+// Keep the form state alive while other tabs rebuild. Never recreate text
+// controllers during build: doing so discarded edits when a field lost focus.
+class SettingsPanel extends StatefulWidget {
+  const SettingsPanel({super.key,required this.data,required this.t,
+    required this.scrollBuilder,required this.cardBuilder,required this.headingBuilder,
+    required this.onManageCategories,required this.onImportBackup,
+    required this.onExportBackup,required this.onSave,required this.onInvalid});
+  final Map<String,dynamic> data;
+  final String Function(String) t;
+  final Widget Function(List<Widget>) scrollBuilder;
+  final Widget Function(Widget) cardBuilder;
+  final Widget Function(String) headingBuilder;
+  final VoidCallback onManageCategories;
+  final Future<void> Function() onImportBackup;
+  final Future<void> Function() onExportBackup;
+  final Future<void> Function(Map<String,dynamic>) onSave;
+  final VoidCallback onInvalid;
+  @override State<SettingsPanel> createState()=>_SettingsPanelState();
+}
+class _SettingsPanelState extends State<SettingsPanel> {
+  late final TextEditingController income,goal,monthlySavings,api,model,url;
+  late String currency,incomeFrequency,provider,lang,theme;
+  @override void initState(){super.initState();
+    final d=widget.data;
+    income=TextEditingController(text:'${d['monthly_income']??0}');
+    goal=TextEditingController(text:'${d['savings_goal']??0}');
+    monthlySavings=TextEditingController(text:'${d['monthly_savings']??0}');
+    api=TextEditingController(text:'${d['ai_api_key']??''}');
+    model=TextEditingController(text:'${d['ai_model']??''}');
+    url=TextEditingController(text:'${d['ai_base_url']??''}');
+    currency='${d['currency']??'USD'}';
+    incomeFrequency='${d['income_frequency']??'monthly'}';
+    provider='${d['ai_provider']??'OpenAI'}';
+    lang='${d['language']??'es'}';
+    theme='${d['theme']??'light'}';
+  }
+  @override void dispose(){for(final c in [income,goal,monthlySavings,api,model,url]){c.dispose();}super.dispose();}
+  double? amount(String raw){final v=double.tryParse(raw.trim().replaceAll(',','.'));return v!=null&&v.isFinite&&v>=0?v:null;}
+  Future<void> submit() async {
+    final inc=amount(income.text),sav=amount(goal.text),monthly=amount(monthlySavings.text);
+    if(inc==null||sav==null||monthly==null){widget.onInvalid();return;}
+    await widget.onSave({
+      'monthly_income':inc,'income_frequency':incomeFrequency,
+      'income_start_date':incomeFrequency=='${widget.data['income_frequency']??'monthly'}'
+        ?widget.data['income_start_date']:DateTime.now().toIso8601String().substring(0,10),
+      'savings_goal':sav,'monthly_savings':monthly,'currency':currency,
+      'ai_provider':provider,'ai_api_key':api.text.trim(),
+      'ai_model':model.text.trim(),'ai_base_url':url.text.trim(),
+      'language':lang,'theme':theme,
+    });
+  }
+  @override Widget build(BuildContext context){
+    String t(String k)=>widget.t(k);
+    return widget.scrollBuilder([
+      widget.headingBuilder(t('settings')),
+      widget.cardBuilder(Column(children:[
+        TextField(controller:income,keyboardType:const TextInputType.numberWithOptions(decimal:true),decoration:InputDecoration(labelText:t('payAmount'))),
+        DropdownButtonFormField<String>(key:ValueKey('frequency-$incomeFrequency'),initialValue:['daily','weekly','biweekly','monthly'].contains(incomeFrequency)?incomeFrequency:'monthly',decoration:InputDecoration(labelText:t('payFrequency')),items:[DropdownMenuItem(value:'daily',child:Text(t('freqDaily'))),DropdownMenuItem(value:'weekly',child:Text(t('freqWeekly'))),DropdownMenuItem(value:'biweekly',child:Text(t('freqBiweekly'))),DropdownMenuItem(value:'monthly',child:Text(t('freqMonthly')))],onChanged:(v)=>setState(()=>incomeFrequency=v??'monthly')),
+        TextField(controller:goal,keyboardType:const TextInputType.numberWithOptions(decimal:true),decoration:InputDecoration(labelText:t('goal'))),
+        TextField(controller:monthlySavings,keyboardType:const TextInputType.numberWithOptions(decimal:true),decoration:InputDecoration(labelText:t('monthlySavings'))),
+        Text(t('monthlySavingsHint')),
+        // Opening balance is set only in the onboarding wizard. Do not edit it here.
+        DropdownButtonFormField<String>(key:ValueKey('currency-$currency'),initialValue:currency,decoration:InputDecoration(labelText:t('currency')),items:['USD','CAD','EUR','GBP','BDT'].map((v)=>DropdownMenuItem(value:v,child:Text(v))).toList(),onChanged:(v)=>setState(()=>currency=v??'USD')),
+        DropdownButtonFormField<String>(key:ValueKey('provider-$provider'),initialValue:['OpenAI','NVIDIA','Custom'].contains(provider)?provider:'OpenAI',decoration:InputDecoration(labelText:t('provider')),items:['OpenAI','NVIDIA','Custom'].map((e)=>DropdownMenuItem(value:e,child:Text(e))).toList(),onChanged:(v)=>setState(()=>provider=v??'OpenAI')),
+        TextField(controller:api,obscureText:true,decoration:InputDecoration(labelText:t('key'))),
+        TextField(controller:model,decoration:InputDecoration(labelText:t('model'))),
+        TextField(controller:url,decoration:InputDecoration(labelText:t('custom'))),
+        DropdownButtonFormField<String>(key:ValueKey('language-$lang'),initialValue:const ['es','en','fr','de','bn'].contains(lang)?lang:'es',decoration:InputDecoration(labelText:t('language')),items:const [DropdownMenuItem(value:'es',child:Text('Español')),DropdownMenuItem(value:'en',child:Text('English')),DropdownMenuItem(value:'fr',child:Text('Français')),DropdownMenuItem(value:'de',child:Text('Deutsch')),DropdownMenuItem(value:'bn',child:Text('বাংলা'))],onChanged:(v)=>setState(()=>lang=v??'es')),
+        DropdownButtonFormField<String>(key:ValueKey('theme-$theme'),initialValue:theme,decoration:InputDecoration(labelText:t('theme')),items:[DropdownMenuItem(value:'light',child:Text(t('light'))),DropdownMenuItem(value:'dark',child:Text(t('dark')))],onChanged:(v)=>setState(()=>theme=v??'light')),
+        const SizedBox(height:12),FilledButton(onPressed:submit,child:Text(t('save')))
+      ])),
+      widget.cardBuilder(Column(children:[
+        ListTile(leading:const Icon(Icons.category_outlined),title:Text(t('manageCategories')),onTap:widget.onManageCategories),
+        ListTile(leading:const Icon(Icons.copy),title:Text(t('export')),onTap:widget.onExportBackup),
+        ListTile(leading:const Icon(Icons.download),title:Text(t('import')),onTap:widget.onImportBackup),
+      ])),
+    ]);
+  }
 }
 
 class Advisor extends StatefulWidget {final Map<String,dynamic> data;final String lang;final Future<void> Function() onSave;const Advisor({super.key,required this.data,required this.lang,required this.onSave});@override State<Advisor> createState()=>_AdvisorState();}
@@ -665,7 +762,7 @@ class _AdvisorState extends State<Advisor> {
       if(response.trim().isEmpty)throw Exception(widget.lang=='es'?'El proveedor no envió texto.':'Provider returned no text.');history.add({'role':'assistant','content':response});widget.data['ai_history']=history;await widget.onSave();
     }catch(e){if(mounted)setState(()=>status='${widget.lang=='es'?'Error':'Error'}: $e');}finally{waitTimer?.cancel();client?.close();client=null;if(mounted)setState(()=>busy=false);bottom();}
   }
-  @override Widget build(BuildContext context){final history=records(widget.data['ai_history']);return Column(children:[Expanded(child:ListView(controller:scroll,padding:const EdgeInsets.all(16),children:[for(final msg in history)Align(alignment:msg['role']=='user'?Alignment.centerRight:Alignment.centerLeft,child:Card(color:msg['role']=='user'?Theme.of(context).colorScheme.primaryContainer:null,child:Padding(padding:const EdgeInsets.all(12),child:Text('${msg['content']??''}')))),if(busy||status.isNotEmpty)Align(alignment:Alignment.centerLeft,child:Card(child:Padding(padding:const EdgeInsets.all(12),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[if(response.isNotEmpty)Text(response),if(status.isNotEmpty)Row(mainAxisSize:MainAxisSize.min,children:[if(busy)const SizedBox(width:16,height:16,child:CircularProgressIndicator(strokeWidth:2)),const SizedBox(width:8),Flexible(child:Text(status))])]))))])),Padding(padding:const EdgeInsets.all(12),child:Row(children:[Expanded(child:TextField(controller:input,enabled:!busy,maxLines:3,minLines:1,decoration:InputDecoration(hintText:widget.lang=='es'?'Escríbele a tu consejero':'Ask your advisor',border:const OutlineInputBorder()))),const SizedBox(width:8),IconButton.filled(onPressed:busy?null:send,icon:const Icon(Icons.send))]))]);}
+  @override Widget build(BuildContext context){final history=records(widget.data['ai_history']);return Column(children:[Expanded(child:ListView(controller:scroll,padding:const EdgeInsets.all(16),children:[for(final msg in history)Align(alignment:msg['role']=='user'?Alignment.centerRight:Alignment.centerLeft,child:Card(color:msg['role']=='user'?Theme.of(context).colorScheme.primaryContainer:null,child:Padding(padding:const EdgeInsets.all(12),child:Text('${msg['content']??''}')))),if(busy||status.isNotEmpty)Align(alignment:Alignment.centerLeft,child:Card(child:Padding(padding:const EdgeInsets.all(12),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[if(response.isNotEmpty)Text(response),if(status.isNotEmpty)Row(mainAxisSize:MainAxisSize.min,children:[if(busy)const SizedBox(width:16,height:16,child:CircularProgressIndicator(strokeWidth:2)),const SizedBox(width:8),Flexible(child:Text(status))])]))))])),Padding(padding:const EdgeInsets.all(12),child:Row(children:[Expanded(child:TextField(controller:input,enabled:!busy,maxLines:3,minLines:1,decoration:InputDecoration(hintText:{'es':'Escríbele a tu consejero','en':'Ask your advisor','fr':'Écrivez à votre conseiller','de':'Frage deinen Finanzberater','bn':'আপনার পরামর্শককে জিজ্ঞাসা করুন'}[widget.lang]??'Ask your advisor',border:const OutlineInputBorder()))),const SizedBox(width:8),IconButton.filled(onPressed:busy?null:send,icon:const Icon(Icons.send))]))]);}
 }
 
 
@@ -678,6 +775,12 @@ class WelcomeWizard extends StatefulWidget {
 class _WelcomeWizardState extends State<WelcomeWizard> {
   int step=0;String language='es',currency='USD',incomeFrequency='monthly';DateTime payday=DateTime(DateTime.now().year,DateTime.now().month+1,1);
   final income=TextEditingController(text:'0'),opening=TextEditingController(text:'0'),goal=TextEditingController(text:'0'),monthlySavings=TextEditingController(text:'0');
+  final Set<TextEditingController> selectedOnFirstFocus={};
+  void selectInitialZero(TextEditingController controller){
+    if(selectedOnFirstFocus.add(controller)&&controller.text=='0'){
+      controller.selection=TextSelection(baseOffset:0,extentOffset:controller.text.length);
+    }
+  }
   int paymentDay=DateTime.now().day;
   final name=TextEditingController(),payment=TextEditingController();
   final List<Map<String,dynamic>> bills=[];
@@ -706,8 +809,8 @@ class _WelcomeWizardState extends State<WelcomeWizard> {
   }
   @override Widget build(BuildContext context)=>Scaffold(appBar:AppBar(title:const Text('MafiFlow Mobile')),body:Center(child:ConstrainedBox(constraints:const BoxConstraints(maxWidth:540),child:ListView(padding:const EdgeInsets.all(24),children:[LinearProgressIndicator(value:(step+1)/4),const SizedBox(height:28),Text(word('¡Bienvenido a MafiFlow!','Welcome to MafiFlow!','Bienvenue sur MafiFlow !','Willkommen bei MafiFlow!','MafiFlow-তে স্বাগতম!'),style:Theme.of(context).textTheme.headlineSmall),const SizedBox(height:22),
     if(step==0)...[Text(word('Elige idioma y moneda','Choose language and currency','Choisissez langue et devise','Sprache und Währung wählen','ভাষা ও মুদ্রা নির্বাচন করুন')),DropdownButtonFormField<String>(initialValue:language,items:const [DropdownMenuItem(value:'es',child:Text('Español')),DropdownMenuItem(value:'en',child:Text('English')),DropdownMenuItem(value:'fr',child:Text('Français')),DropdownMenuItem(value:'de',child:Text('Deutsch')),DropdownMenuItem(value:'bn',child:Text('বাংলা'))],onChanged:(v)=>setState(()=>language=v??'es')),DropdownButtonFormField<String>(initialValue:currency,items:['USD','CAD','EUR','GBP','BDT'].map((v)=>DropdownMenuItem(value:v,child:Text(v))).toList(),onChanged:(v)=>setState(()=>currency=v??'USD'))],
-    if(step==1)...[Text(word('Configura tus finanzas iniciales','Set up your starting finances','Configurez vos finances','Finanzen einrichten','প্রাথমিক অর্থ সেট করুন')),TextField(controller:income,keyboardType:const TextInputType.numberWithOptions(decimal:true),decoration:InputDecoration(labelText:word('Cantidad que recibes por pago','Amount per payday','Montant par paie','Betrag pro Zahlung','প্রতি বেতনের পরিমাণ'))),DropdownButtonFormField<String>(initialValue:incomeFrequency,decoration:InputDecoration(labelText:word('¿Cada cuánto cobras?','How often are you paid?','À quelle fréquence êtes-vous payé ?','Wie oft wirst du bezahlt?','কত ঘন ঘন বেতন পান?')),items:[DropdownMenuItem(value:'daily',child:Text(word('Diariamente','Daily','Chaque jour','Täglich','প্রতিদিন'))),DropdownMenuItem(value:'weekly',child:Text(word('Semanalmente','Weekly','Chaque semaine','Wöchentlich','প্রতি সপ্তাহে'))),DropdownMenuItem(value:'biweekly',child:Text(word('Cada 2 semanas','Every 2 weeks','Toutes les 2 semaines','Alle 2 Wochen','প্রতি ২ সপ্তাহে'))),DropdownMenuItem(value:'monthly',child:Text(word('Mensualmente','Monthly','Chaque mois','Monatlich','প্রতি মাসে')))],onChanged:(v)=>setState(()=>incomeFrequency=v??'monthly')),const SizedBox(height:8),ListTile(contentPadding:EdgeInsets.zero,title:Text(word('Fecha del próximo cobro','Next payday','Date du premier paiement','Erster Zahltag','প্রথম বেতনের তারিখ')),subtitle:Text('${payday.year}-${payday.month.toString().padLeft(2,'0')}-${payday.day.toString().padLeft(2,'0')}'),trailing:const Icon(Icons.calendar_today),onTap:()async{final chosen=await showDatePicker(context:context,initialDate:payday,firstDate:DateTime(2020),lastDate:DateTime(2100));if(chosen!=null)setState(()=>payday=chosen);}),TextField(controller:opening,keyboardType:const TextInputType.numberWithOptions(decimal:true),decoration:InputDecoration(labelText:word('Saldo disponible ahora (no se suma al salario)','Available balance now (not added to salary)','Solde actuel (pas un revenu)','Aktueller Kontostand (kein Einkommen)','বর্তমান ব্যালেন্স')))],
-    if(step==2)...[TextField(controller:monthlySavings,keyboardType:const TextInputType.numberWithOptions(decimal:true),decoration:InputDecoration(labelText:word('¿Cuánto quieres ahorrar al mes?','How much to save monthly?','Combien épargner par mois ?','Monatlicher Sparbetrag','মাসিক সঞ্চয়'))),TextField(controller:goal,keyboardType:const TextInputType.numberWithOptions(decimal:true),decoration:InputDecoration(labelText:word('¿Cuál es tu objetivo total de ahorro?','Total savings target','Objectif total d’épargne','Gesamtsparziel','মোট সঞ্চয়ের লক্ষ্য'))),const SizedBox(height:12),Text(word('Mensualmente este dinero se descontará automáticamente del dinero disponible hasta llegar a tu objetivo.','Each month this amount will automatically be deducted from available money until you reach your goal.','Chaque mois, ce montant sera déduit de votre solde disponible jusqu’à votre objectif.','Jeden Monat wird dieser Betrag vom verfügbaren Geld abgezogen, bis das Ziel erreicht ist.','লক্ষ্য পূরণ না হওয়া পর্যন্ত প্রতি মাসে উপলব্ধ অর্থ থেকে এই পরিমাণ বাদ যাবে।'))],
+    if(step==1)...[Text(word('Configura tus finanzas iniciales','Set up your starting finances','Configurez vos finances','Finanzen einrichten','প্রাথমিক অর্থ সেট করুন')),TextField(controller:income,onTap:()=>selectInitialZero(income),keyboardType:const TextInputType.numberWithOptions(decimal:true),decoration:InputDecoration(labelText:word('Cantidad que recibes por pago','Amount per payday','Montant par paie','Betrag pro Zahlung','প্রতি বেতনের পরিমাণ'))),DropdownButtonFormField<String>(initialValue:incomeFrequency,decoration:InputDecoration(labelText:word('¿Cada cuánto cobras?','How often are you paid?','À quelle fréquence êtes-vous payé ?','Wie oft wirst du bezahlt?','কত ঘন ঘন বেতন পান?')),items:[DropdownMenuItem(value:'daily',child:Text(word('Diariamente','Daily','Chaque jour','Täglich','প্রতিদিন'))),DropdownMenuItem(value:'weekly',child:Text(word('Semanalmente','Weekly','Chaque semaine','Wöchentlich','প্রতি সপ্তাহে'))),DropdownMenuItem(value:'biweekly',child:Text(word('Cada 2 semanas','Every 2 weeks','Toutes les 2 semaines','Alle 2 Wochen','প্রতি ২ সপ্তাহে'))),DropdownMenuItem(value:'monthly',child:Text(word('Mensualmente','Monthly','Chaque mois','Monatlich','প্রতি মাসে')))],onChanged:(v)=>setState(()=>incomeFrequency=v??'monthly')),const SizedBox(height:8),ListTile(contentPadding:EdgeInsets.zero,title:Text(word('Fecha del próximo cobro','Next payday','Date du premier paiement','Erster Zahltag','প্রথম বেতনের তারিখ')),subtitle:Text('${payday.year}-${payday.month.toString().padLeft(2,'0')}-${payday.day.toString().padLeft(2,'0')}'),trailing:const Icon(Icons.calendar_today),onTap:()async{final chosen=await showDatePicker(context:context,initialDate:payday,firstDate:DateTime(2020),lastDate:DateTime(2100));if(chosen!=null)setState(()=>payday=chosen);}),TextField(controller:opening,onTap:()=>selectInitialZero(opening),keyboardType:const TextInputType.numberWithOptions(decimal:true),decoration:InputDecoration(labelText:word('Saldo disponible ahora (no se suma al salario)','Available balance now (not added to salary)','Solde actuel (pas un revenu)','Aktueller Kontostand (kein Einkommen)','বর্তমান ব্যালেন্স')))],
+    if(step==2)...[TextField(controller:monthlySavings,onTap:()=>selectInitialZero(monthlySavings),keyboardType:const TextInputType.numberWithOptions(decimal:true),decoration:InputDecoration(labelText:word('¿Cuánto quieres ahorrar al mes?','How much to save monthly?','Combien épargner par mois ?','Monatlicher Sparbetrag','মাসিক সঞ্চয়'))),TextField(controller:goal,onTap:()=>selectInitialZero(goal),keyboardType:const TextInputType.numberWithOptions(decimal:true),decoration:InputDecoration(labelText:word('¿Cuál es tu objetivo total de ahorro?','Total savings target','Objectif total d’épargne','Gesamtsparziel','মোট সঞ্চয়ের লক্ষ্য'))),const SizedBox(height:12),Text(word('Mensualmente este dinero se descontará automáticamente del dinero disponible hasta llegar a tu objetivo.','Each month this amount will automatically be deducted from available money until you reach your goal.','Chaque mois, ce montant sera déduit de votre solde disponible jusqu’à votre objectif.','Jeden Monat wird dieser Betrag vom verfügbaren Geld abgezogen, bis das Ziel erreicht ist.','লক্ষ্য পূরণ না হওয়া পর্যন্ত প্রতি মাসে উপলব্ধ অর্থ থেকে এই পরিমাণ বাদ যাবে।'))],
     if(step==3)...[Text(word('Agrega tus gastos fijos (opcional)','Add recurring expenses (optional)','Ajoutez les dépenses récurrentes','Wiederkehrende Ausgaben','নিয়মিত খরচ যোগ করুন')),TextField(controller:name,decoration:InputDecoration(labelText:word('Nombre del gasto','Expense name','Nom de la dépense','Ausgabenname','খরচের নাম'))),TextField(controller:payment,keyboardType:const TextInputType.numberWithOptions(decimal:true),decoration:InputDecoration(labelText:word('Cantidad mensual','Monthly amount','Montant mensuel','Monatlicher Betrag','মাসিক পরিমাণ'))),DropdownButtonFormField<int>(initialValue:paymentDay,decoration:InputDecoration(labelText:word('Día de cobro mensual','Monthly charge day','Jour du prélèvement','Monatlicher Abbuchungstag','মাসিক পেমেন্টের দিন')),items:List.generate(31,(i)=>DropdownMenuItem(value:i+1,child:Text('${i+1}'))),onChanged:(v)=>setState(()=>paymentDay=v??1)),const SizedBox(height:8),TextButton.icon(onPressed:(){final n=parse(payment.text);if(name.text.trim().isEmpty||n==null||n<=0)return;setState((){bills.add({'name':name.text.trim(),'amount':n,'active':true,'day':paymentDay,'start_date':DateTime.now().toIso8601String().substring(0,10)});name.clear();payment.clear();paymentDay=DateTime.now().day;});},icon:const Icon(Icons.add),label:Text(word('Agregar pago','Add payment','Ajouter','Hinzufügen','যোগ করুন'))),...bills.map((b)=>ListTile(title:Text('${b['name']}'),trailing:Text('${b['amount']}')))],
     const SizedBox(height:30),Row(children:[if(step>0)TextButton(onPressed:()=>setState(()=>step--),child:Text(word('Atrás','Back','Retour','Zurück','পেছনে'))),const Spacer(),FilledButton(onPressed:next,child:Text(step==3?word('Empezar','Get started','Commencer','Starten','শুরু করুন'):word('Continuar','Continue','Continuer','Weiter','চালিয়ে যান')))])]))));
 }
@@ -715,6 +818,37 @@ class _WelcomeWizardState extends State<WelcomeWizard> {
 class CalculatorDialog extends StatefulWidget {const CalculatorDialog({super.key,required this.title});final String title;@override State<CalculatorDialog> createState()=>_CalculatorDialogState();}
 class _CalculatorDialogState extends State<CalculatorDialog> {
   String display='0',operator='',previous='';bool resetNext=false;
-  void press(String key){setState((){if(key=='C'){display='0';operator='';previous='';resetNext=false;return;}if(key=='⌫'){display=display.length>1?display.substring(0,display.length-1):'0';return;}if(key=='+'||key=='−'||key=='×'||key=='÷'){previous=display;operator=key;resetNext=true;return;}if(key=='='){final a=double.tryParse(previous),b=double.tryParse(display);if(a==null||b==null||operator.isEmpty)return;final v=switch(operator){'+'=>a+b,'−'=>a-b,'×'=>a*b,'÷'=>b==0?double.nan:a/b,_=>b};display=v.isFinite?(v==v.roundToDouble()?v.toInt().toString():v.toStringAsFixed(6).replaceFirst(RegExp(r'0+$'),'').replaceFirst(RegExp(r'\.$'),'')):'Error';operator='';resetNext=true;return;}if(resetNext||display=='0'||display=='Error'){display=key=='.'?'0.':key;resetNext=false;}else if(key!='.'||!display.contains('.')){display+=key;}});}
+  String format(double value)=>value.isFinite
+      ?(value==value.roundToDouble()?value.toInt().toString():value.toStringAsFixed(6).replaceFirst(RegExp(r'0+$'),'').replaceFirst(RegExp(r'\.$'),''))
+      :'Error';
+  double evaluate(double a,double b,String op)=>switch(op){
+    '+'=>a+b,'−'=>a-b,'×'=>a*b,'÷'=>b==0?double.nan:a/b,_=>b,
+  };
+  void press(String key){setState((){
+    if(key=='C'){display='0';operator='';previous='';resetNext=false;return;}
+    if(key=='⌫'){
+      if(resetNext){resetNext=false;return;}
+      display=display.length>1?display.substring(0,display.length-1):'0';
+      if(display=='-'||display.isEmpty)display='0';
+      return;
+    }
+    if(['+','−','×','÷'].contains(key)){
+      if(operator.isNotEmpty&&!resetNext){
+        final a=double.tryParse(previous),b=double.tryParse(display);
+        if(a!=null&&b!=null)display=format(evaluate(a,b,operator));
+      }
+      if(display=='Error'){operator='';previous='';resetNext=true;return;}
+      previous=display;operator=key;resetNext=true;return;
+    }
+    if(key=='='){
+      final a=double.tryParse(previous),b=double.tryParse(display);
+      if(a==null||b==null||operator.isEmpty)return;
+      display=format(evaluate(a,b,operator));
+      operator='';previous='';resetNext=true;return;
+    }
+    if(resetNext||display=='0'||display=='Error'){
+      display=key=='.'?'0.':key;resetNext=false;
+    }else if(key!='.'||!display.contains('.')){display+=key;}
+  });}
   @override Widget build(BuildContext context)=>AlertDialog(title:Text(widget.title),content:SizedBox(width:300,child:Column(mainAxisSize:MainAxisSize.min,children:[Align(alignment:Alignment.centerRight,child:SelectableText(display,style:Theme.of(context).textTheme.headlineMedium)),const SizedBox(height:14),for(final row in [['7','8','9','÷'],['4','5','6','×'],['1','2','3','−'],['C','0','.','+'],['⌫','=']])Row(children:[for(final key in row)Expanded(child:Padding(padding:const EdgeInsets.all(3),child:FilledButton.tonal(onPressed:()=>press(key),child:Text(key))))])])),actions:[TextButton(onPressed:()=>Navigator.pop(context),child:const Text('OK'))]);
 }
