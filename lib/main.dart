@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'package:fl_chart/fl_chart.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 void main() { WidgetsFlutterBinding.ensureInitialized(); runApp(const MafiFlowApp()); }
 const green = Color(0xFF168657);
@@ -41,6 +42,13 @@ const improvedLabels = <String,Map<String,String>>{
 'fr': {'opening':'Solde initial','currency':'Devise','manageCategories':'Gérer les catégories','newCategory':'Nouvelle catégorie','categoriesHint':'Choisir une catégorie','categoryName':'Nom de catégorie','removeCategory':'Supprimer la catégorie','restoreCategories':'Réinitialiser les catégories','categoryInUse':'Les anciennes opérations seront conservées.','chartType':'Type de graphique','distribution':'Répartition des dépenses','monthlyTrend':'Comparaison mensuelle','categoryShares':'Dépenses par catégorie','monthComparison':'Par rapport au mois précédent','previousMonth':'Mois précédent','currentMonth':'Mois actuel','spendingChange':'Variation des dépenses','incomeChange':'Variation des revenus','noPrevious':'Aucune donnée du mois précédent','barChart':'Barres','pieChart':'Camembert','lineChart':'Courbe','share':'des dépenses','expenseCategories':'Catégories de dépenses','editCategories':'Modifier les catégories','calculator':'Calculatrice'},
 'de': {'opening':'Anfangssaldo','currency':'Währung','manageCategories':'Kategorien verwalten','newCategory':'Neue Kategorie','categoriesHint':'Kategorie auswählen','categoryName':'Kategoriename','removeCategory':'Kategorie entfernen','restoreCategories':'Kategorien zurücksetzen','categoryInUse':'Frühere Buchungen bleiben erhalten.','chartType':'Diagrammtyp','distribution':'Ausgabenverteilung','monthlyTrend':'Monatsvergleich','categoryShares':'Ausgaben nach Kategorie','monthComparison':'Vergleich zum Vormonat','previousMonth':'Vormonat','currentMonth':'Aktueller Monat','spendingChange':'Ausgabenänderung','incomeChange':'Einnahmenänderung','noPrevious':'Keine Daten im Vormonat','barChart':'Balken','pieChart':'Kreis','lineChart':'Linie','share':'der Ausgaben','expenseCategories':'Ausgabenkategorien','editCategories':'Kategorien bearbeiten','calculator':'Rechner'},
 'bn': {'opening':'প্রারম্ভিক ব্যালেন্স','currency':'মুদ্রা','manageCategories':'বিভাগ পরিচালনা','newCategory':'নতুন বিভাগ','categoriesHint':'বিভাগ বেছে নিন','categoryName':'বিভাগের নাম','removeCategory':'বিভাগ মুছুন','restoreCategories':'বিভাগ পুনরুদ্ধার','categoryInUse':'আগের লেনদেনগুলো সংরক্ষিত থাকবে।','chartType':'চার্টের ধরন','distribution':'খরচের বিভাজন','monthlyTrend':'মাসিক তুলনা','categoryShares':'বিভাগভিত্তিক খরচ','monthComparison':'আগের মাসের তুলনায়','previousMonth':'আগের মাস','currentMonth':'চলতি মাস','spendingChange':'খরচের পরিবর্তন','incomeChange':'আয়ের পরিবর্তন','noPrevious':'আগের মাসের তথ্য নেই','barChart':'বার','pieChart':'পাই','lineChart':'লাইন','share':'খরচের','expenseCategories':'খরচের বিভাগ','editCategories':'বিভাগ সম্পাদনা','calculator':'ক্যালকুলেটর'}
+};
+const helpLabels = <String,Map<String,String>>{
+  'es': {'helpCenter': 'Centro de ayuda','reportBug': 'Reportar un error','suggestFeature': 'Sugerir una función','faq': 'Preguntas frecuentes','describeBug': 'Describe lo ocurrido','whereBug': '¿Dónde ocurrió?','sendEmail': 'Enviar por correo','emailPrivacy': 'Se abrirá tu aplicación de correo. Adjunta allí una captura si lo deseas. No incluimos datos financieros ni claves API.','emailFailed': 'No se pudo abrir el correo. Escribe a mafistudio.dev@gmail.com','faqDataQ': '¿Dónde se guardan mis datos?','faqDataA': 'En este dispositivo. Puedes exportar una copia de seguridad desde Ajustes.','faqPaymentsQ': '¿Cuándo se registran los pagos recurrentes?','faqPaymentsA': 'Al abrir MafiFlow, se registran los pagos vencidos desde la fecha de inicio seleccionada.','faqAiQ': '¿Cómo funciona el asesor de IA?','faqAiA': 'Es opcional. Necesitas configurar tu propia clave API.','faqStatsQ': '¿Las estadísticas incluyen los pagos nuevos?','faqStatsA': 'Sí. Las estadísticas utilizan los movimientos registrados, incluidos los pagos recurrentes y los ingresos automáticos.','firstPaymentDate': 'Fecha del primer pago','dateHint': 'Elige una fecha de inicio en el calendario.','describeIdea': 'Describe tu sugerencia','message': 'Escribe tu mensaje','sendSuggestion': 'Enviar sugerencia','sendReport': 'Enviar informe','helpFeedback': 'Ayuda y comentarios','emailConfirm': 'Tu mensaje se prepara en el correo; confirma el envío allí.'},
+  'en': {'helpCenter': 'Help center','reportBug': 'Report a bug','suggestFeature': 'Suggest a feature','faq': 'Frequently asked questions','describeBug': 'Describe what happened','whereBug': 'Where did it happen?','sendEmail': 'Send by email','emailPrivacy': 'Your email app will open. Attach a screenshot there if you wish. Financial data and API keys are not included.','emailFailed': 'Could not open email. Write to mafistudio.dev@gmail.com','faqDataQ': 'Where is my data stored?','faqDataA': 'On this device. You can export a backup from Settings.','faqPaymentsQ': 'When are recurring payments recorded?','faqPaymentsA': 'When you open MafiFlow, due payments are recorded from the selected start date.','faqAiQ': 'How does the AI advisor work?','faqAiA': 'It is optional. You must configure your own API key.','faqStatsQ': 'Do statistics include new payments?','faqStatsA': 'Yes. Statistics use recorded transactions, including recurring payments and automatic income.','firstPaymentDate': 'First payment date','dateHint': 'Choose a start date from the calendar.','describeIdea': 'Describe your suggestion','message': 'Write your message','sendSuggestion': 'Send suggestion','sendReport': 'Send report','helpFeedback': 'Help & feedback','emailConfirm': 'Your email app prepares the message; confirm sending there.'},
+  'fr': {'helpCenter': 'Centre d’aide','reportBug': 'Signaler un problème','suggestFeature': 'Suggérer une fonctionnalité','faq': 'Questions fréquentes','describeBug': 'Décrivez le problème','whereBug': 'Où est-ce arrivé ?','sendEmail': 'Envoyer par e-mail','emailPrivacy': 'Votre application e-mail va s’ouvrir. Vous pourrez joindre une capture. Aucune donnée financière ni clé API n’est incluse.','emailFailed': 'Impossible d’ouvrir l’e-mail. Écrivez à mafistudio.dev@gmail.com','faqDataQ': 'Où sont stockées mes données ?','faqDataA': 'Sur cet appareil. Exportez une sauvegarde dans les paramètres.','faqPaymentsQ': 'Quand les paiements récurrents sont-ils enregistrés ?','faqPaymentsA': 'À l’ouverture de MafiFlow, les paiements dus depuis la date choisie sont enregistrés.','faqAiQ': 'Comment fonctionne le conseiller IA ?','faqAiA': 'Il est facultatif et nécessite votre propre clé API.','faqStatsQ': 'Les statistiques incluent-elles les nouveaux paiements ?','faqStatsA': 'Oui. Elles utilisent les transactions enregistrées, y compris les paiements récurrents et les revenus automatiques.','firstPaymentDate': 'Date du premier paiement','dateHint': 'Choisissez la date de début dans le calendrier.','describeIdea': 'Décrivez votre suggestion','message': 'Écrivez votre message','sendSuggestion': 'Envoyer la suggestion','sendReport': 'Envoyer le signalement','helpFeedback': 'Aide et commentaires','emailConfirm': 'Le message sera préparé dans votre messagerie ; confirmez son envoi.'},
+  'de': {'helpCenter': 'Hilfe-Center','reportBug': 'Fehler melden','suggestFeature': 'Funktion vorschlagen','faq': 'Häufige Fragen','describeBug': 'Was ist passiert?','whereBug': 'Wo ist es passiert?','sendEmail': 'Per E-Mail senden','emailPrivacy': 'Deine E-Mail-App wird geöffnet. Du kannst dort einen Screenshot anhängen. Finanzdaten und API-Schlüssel werden nicht übermittelt.','emailFailed': 'E-Mail konnte nicht geöffnet werden. Schreibe an mafistudio.dev@gmail.com','faqDataQ': 'Wo werden meine Daten gespeichert?','faqDataA': 'Auf diesem Gerät. In den Einstellungen kannst du ein Backup exportieren.','faqPaymentsQ': 'Wann werden wiederkehrende Zahlungen gebucht?','faqPaymentsA': 'Beim Öffnen von MafiFlow werden fällige Zahlungen ab dem gewählten Startdatum gebucht.','faqAiQ': 'Wie funktioniert der KI-Berater?','faqAiA': 'Er ist optional und benötigt deinen eigenen API-Schlüssel.','faqStatsQ': 'Enthalten die Statistiken neue Zahlungen?','faqStatsA': 'Ja. Die Statistik verwendet gebuchte Transaktionen, einschließlich wiederkehrender Zahlungen und automatischer Einnahmen.','firstPaymentDate': 'Datum der ersten Zahlung','dateHint': 'Wähle das Startdatum im Kalender.','describeIdea': 'Beschreibe deinen Vorschlag','message': 'Schreibe deine Nachricht','sendSuggestion': 'Vorschlag senden','sendReport': 'Fehlerbericht senden','helpFeedback': 'Hilfe und Feedback','emailConfirm': 'Die Nachricht wird in deiner E-Mail-App vorbereitet; bestätige dort den Versand.'},
+  'bn': {'helpCenter': 'সহায়তা কেন্দ্র','reportBug': 'সমস্যা জানান','suggestFeature': 'নতুন ফিচারের পরামর্শ','faq': 'সাধারণ প্রশ্ন','describeBug': 'কী ঘটেছে লিখুন','whereBug': 'কোথায় ঘটেছে?','sendEmail': 'ইমেইলে পাঠান','emailPrivacy': 'ইমেইল অ্যাপ খুলবে। চাইলে সেখানে স্ক্রিনশট যোগ করুন। আর্থিক তথ্য বা API কী পাঠানো হবে না।','emailFailed': 'ইমেইল খোলা যায়নি। লিখুন: mafistudio.dev@gmail.com','faqDataQ': 'আমার তথ্য কোথায় থাকে?','faqDataA': 'এই ডিভাইসে। সেটিংস থেকে ব্যাকআপ রপ্তানি করতে পারেন।','faqPaymentsQ': 'নিয়মিত পেমেন্ট কখন যোগ হয়?','faqPaymentsA': 'MafiFlow খুললে নির্বাচিত শুরুর তারিখ থেকে বকেয়া পেমেন্ট যোগ হয়।','faqAiQ': 'AI পরামর্শক কীভাবে কাজ করে?','faqAiA': 'এটি ঐচ্ছিক। নিজের API কী দিতে হবে।','faqStatsQ': 'নতুন পেমেন্ট কি পরিসংখ্যানে আসে?','faqStatsA': 'হ্যাঁ। পরিসংখ্যান সংরক্ষিত লেনদেন, নিয়মিত পেমেন্ট ও স্বয়ংক্রিয় আয় ব্যবহার করে।','firstPaymentDate': 'প্রথম পেমেন্টের তারিখ','dateHint': 'ক্যালেন্ডার থেকে শুরুর তারিখ বেছে নিন।','describeIdea': 'আপনার পরামর্শ লিখুন','message': 'আপনার বার্তা লিখুন','sendSuggestion': 'পরামর্শ পাঠান','sendReport': 'সমস্যা পাঠান','helpFeedback': 'সহায়তা ও মতামত','emailConfirm': 'ইমেইল অ্যাপে বার্তা তৈরি হবে; সেখান থেকে পাঠানো নিশ্চিত করুন।'},
 };
 const categoryTranslations = <String,Map<String,String>>{
 'Comida':{'es':'Comida','en':'Food','fr':'Alimentation','de':'Lebensmittel','bn':'খাবার'},
@@ -97,7 +105,7 @@ class _MafiFlowAppState extends State<MafiFlowApp> {
 
   Map<String,dynamic> data=Map<String,dynamic>.from(defaults);
   bool ready=false; int tab=0;
-  String t(String key)=> featureLabels['${data['language']}']?[key] ?? improvedLabels['${data['language']}']?[key] ?? (additionalLabels[data['language']] ?? labels[data['language']] ?? labels['es']!)[key] ?? labels['en']![key] ?? key;
+  String t(String key)=> helpLabels['${data['language']}']?[key] ?? featureLabels['${data['language']}']?[key] ?? improvedLabels['${data['language']}']?[key] ?? (additionalLabels[data['language']] ?? labels[data['language']] ?? labels['es']!)[key] ?? labels['en']![key] ?? key;
   String catName(String category)=>categoryTranslations[category]?['${data['language']}']??category;
   String transactionTitle(Map<String,dynamic> x) {
     final category='${x['category']??x['type']??''}';
@@ -311,7 +319,7 @@ class _MafiFlowAppState extends State<MafiFlowApp> {
   void notice(String text){messengerKey.currentState?.showSnackBar(SnackBar(content:Text(text)));}
   Widget card(Widget child)=>Card(margin:const EdgeInsets.symmetric(vertical:7),child:Padding(padding:const EdgeInsets.all(16),child:child));
   Widget heading(String text)=>Padding(padding:const EdgeInsets.only(top:12,bottom:8),child:Text(text,style:TextStyle(fontSize:22,fontWeight:FontWeight.bold,color:dark?Colors.white:Colors.black87)));
-  @override Widget build(BuildContext context){final lang='${data['language']}';activeCurrency='${data['currency']??'USD'}';return MaterialApp(navigatorKey:navKey,scaffoldMessengerKey:messengerKey,debugShowCheckedModeBanner:false,title:'MafiFlow Mobile',theme:ThemeData(colorScheme:ColorScheme.fromSeed(seedColor:green),useMaterial3:true),darkTheme:ThemeData(colorScheme:ColorScheme.fromSeed(seedColor:green,brightness:Brightness.dark),useMaterial3:true),themeMode:dark?ThemeMode.dark:ThemeMode.light,home:!ready?const Scaffold(body:Center(child:CircularProgressIndicator())):data['setup_completed']!=true?WelcomeWizard(onComplete:(v) async {data.addAll(v);data['setup_completed']=true;applyMonthly();applySavingsMonthly();await save();}):Builder(builder:(shellContext)=>Scaffold(appBar:AppBar(title:Row(children:[Image.asset('assets/logo.png',height:34),const SizedBox(width:10),const Text('MafiFlow Mobile')]),actions:[IconButton(tooltip:t('calculator'),icon:const Icon(Icons.calculate_outlined),onPressed:()=>showDialog(context:dialogContext,builder:(_)=>CalculatorDialog(title:t('calculator')))),IconButton(icon:const Icon(Icons.settings),onPressed:()=>setState(()=>tab=5))]),body:SafeArea(child:LayoutBuilder(builder:(ctx,box){final content=IndexedStack(index:tab,children:[home(),transactions(),monthly(),stats(),Advisor(data:data,lang:lang,onSave:save),settings()]);return content;})),bottomNavigationBar:NavigationBar(selectedIndex:tab,onDestinationSelected:(v)=>setState(()=>tab=v),labelBehavior:NavigationDestinationLabelBehavior.onlyShowSelected,destinations:[NavigationDestination(icon:const Icon(Icons.home_outlined),label:t('home')),NavigationDestination(icon:const Icon(Icons.receipt_long),label:t('moves')),NavigationDestination(icon:const Icon(Icons.event_repeat),label:t('monthly')),NavigationDestination(icon:const Icon(Icons.pie_chart_outline),label:t('stats')),NavigationDestination(icon:const Icon(Icons.smart_toy_outlined),label:t('ai')),NavigationDestination(icon:const Icon(Icons.settings_outlined),label:t('settings'))]))));}
+  @override Widget build(BuildContext context){final lang='${data['language']}';activeCurrency='${data['currency']??'USD'}';return MaterialApp(navigatorKey:navKey,scaffoldMessengerKey:messengerKey,debugShowCheckedModeBanner:false,title:'MafiFlow Mobile',theme:ThemeData(colorScheme:ColorScheme.fromSeed(seedColor:green),useMaterial3:true),darkTheme:ThemeData(colorScheme:ColorScheme.fromSeed(seedColor:green,brightness:Brightness.dark),useMaterial3:true),themeMode:dark?ThemeMode.dark:ThemeMode.light,home:!ready?const Scaffold(body:Center(child:CircularProgressIndicator())):data['setup_completed']!=true?WelcomeWizard(onComplete:(v) async {data.addAll(v);data['setup_completed']=true;applyMonthly();applySavingsMonthly();await save();}):Builder(builder:(shellContext)=>Scaffold(appBar:AppBar(title:Row(children:[Image.asset('assets/logo.png',height:34),const SizedBox(width:10),const Text('MafiFlow Mobile')]),actions:[IconButton(tooltip:t('helpCenter'),icon:const Icon(Icons.help_outline),onPressed:()=>Navigator.of(dialogContext).push(MaterialPageRoute(builder:(_)=>MafiHelpCenter(language:'${data['language']}')))),IconButton(tooltip:t('calculator'),icon:const Icon(Icons.calculate_outlined),onPressed:()=>showDialog(context:dialogContext,builder:(_)=>CalculatorDialog(title:t('calculator')))),IconButton(icon:const Icon(Icons.settings),onPressed:()=>setState(()=>tab=5))]),body:SafeArea(child:LayoutBuilder(builder:(ctx,box){final content=IndexedStack(index:tab,children:[home(),transactions(),monthly(),stats(),Advisor(data:data,lang:lang,onSave:save),settings()]);return content;})),bottomNavigationBar:NavigationBar(selectedIndex:tab,onDestinationSelected:(v)=>setState(()=>tab=v),labelBehavior:NavigationDestinationLabelBehavior.onlyShowSelected,destinations:[NavigationDestination(icon:const Icon(Icons.home_outlined),label:t('home')),NavigationDestination(icon:const Icon(Icons.receipt_long),label:t('moves')),NavigationDestination(icon:const Icon(Icons.event_repeat),label:t('monthly')),NavigationDestination(icon:const Icon(Icons.pie_chart_outline),label:t('stats')),NavigationDestination(icon:const Icon(Icons.smart_toy_outlined),label:t('ai')),NavigationDestination(icon:const Icon(Icons.settings_outlined),label:t('settings'))]))));}
   Widget scroll(List<Widget> widgets)=>ListView(padding:const EdgeInsets.all(16),children:widgets);
   Widget stat(String label,double value,IconData icon,Color color)=>card(Row(children:[Icon(icon,color:color),const SizedBox(width:14),Expanded(child:Text(label)),Text(money(value),style:TextStyle(fontWeight:FontWeight.bold,fontSize:19,color:color))]));
   Widget home(){
@@ -411,25 +419,19 @@ class _MafiFlowAppState extends State<MafiFlowApp> {
           items:frequencyOptions(),onChanged:(v)=>setDialogState(()=>selectedFrequency=v??'monthly')),
         if(selectedFrequency=='daily')
           Text(t('dailyDateHint'),style:Theme.of(context).textTheme.bodySmall)
-        else if(selectedFrequency=='weekly'||selectedFrequency=='biweekly') ...[
+        else ...[
           ListTile(contentPadding:EdgeInsets.zero,title:Text(t('firstPaymentDate')),
             subtitle:Text(dateOnly(firstPaymentDate)),trailing:const Icon(Icons.calendar_today),
-            onTap:()async{final d=await showDatePicker(context:context,initialDate:firstPaymentDate,firstDate:DateTime.now().subtract(const Duration(days:1)),lastDate:DateTime(2100));if(d!=null)setDialogState(()=>firstPaymentDate=d);}),
-          Text(t('weeklyDateHint'),style:Theme.of(context).textTheme.bodySmall),
-        ] else ...[
-          DropdownButtonFormField<int>(initialValue:selectedDay,
-            decoration:InputDecoration(labelText:t('recurringDay')),
-            items:List.generate(31,(i)=>DropdownMenuItem(value:i+1,child:Text('${i+1}'))),
-            onChanged:(v)=>setDialogState(()=>selectedDay=v??1)),
-          Text(t('recurringDayHint'),style:Theme.of(context).textTheme.bodySmall),
+            onTap:()async{final d=await showDatePicker(context:context,initialDate:firstPaymentDate,firstDate:DateTime(2020),lastDate:DateTime(2100));if(d!=null)setDialogState((){firstPaymentDate=d;selectedDay=d.day;});}),
+          Text(t('dateHint'),style:Theme.of(context).textTheme.bodySmall),
         ],
       ])),
       actions:[TextButton(onPressed:()=>Navigator.pop(c),child:Text(t('cancel'))),
         FilledButton(onPressed:(){final n=double.tryParse(amount.text.replaceAll(',','.'));
           if(n==null||n<=0||!n.isFinite||name.text.trim().isEmpty){notice(t('invalid'));return;}
           final now=DateTime.now();
-          final first=(selectedFrequency=='weekly'||selectedFrequency=='biweekly')?firstPaymentDate:firstRecurringDate(DateTime(now.year,now.month,now.day),selectedDay,selectedFrequency);
-          data['monthly_payments']=[...payments,{'name':name.text.trim(),'amount':n,'active':true,'day':selectedDay,'frequency':selectedFrequency,'start_date':dateOnly(first)}];
+          final first=selectedFrequency=='daily'?DateTime(now.year,now.month,now.day):firstPaymentDate;
+          data['monthly_payments']=[...payments,{'name':name.text.trim(),'amount':n,'active':true,'day':first.day,'frequency':selectedFrequency,'start_date':dateOnly(first)}];
           Navigator.pop(c);applyMonthly();
         },child:Text(t('save')))])));
     name.dispose();amount.dispose();
@@ -451,15 +453,15 @@ class _MafiFlowAppState extends State<MafiFlowApp> {
             content:Column(mainAxisSize:MainAxisSize.min,children:[
               DropdownButtonFormField<String>(isExpanded:true,initialValue:selectedFrequency,decoration:InputDecoration(labelText:t('paymentFrequency')),items:frequencyOptions(),onChanged:(v)=>setDialogState(()=>selectedFrequency=v??'monthly')),
               if(selectedFrequency=='daily') Text(t('dailyDateHint'))
-              else if(selectedFrequency=='weekly'||selectedFrequency=='biweekly') ...[
-                ListTile(contentPadding:EdgeInsets.zero,title:Text(t('firstPaymentDate')),subtitle:Text(dateOnly(firstPaymentDate)),trailing:const Icon(Icons.calendar_today),onTap:()async{final d=await showDatePicker(context:context,initialDate:firstPaymentDate,firstDate:DateTime.now().subtract(const Duration(days:1)),lastDate:DateTime(2100));if(d!=null)setDialogState(()=>firstPaymentDate=d);}),
-                Text(t('weeklyDateHint')),
-              ] else DropdownButtonFormField<int>(initialValue:selectedDay,decoration:InputDecoration(labelText:t('recurringDay')),items:List.generate(31,(i)=>DropdownMenuItem(value:i+1,child:Text('${i+1}'))),onChanged:(v)=>setDialogState(()=>selectedDay=v??1)),
+              else ...[
+                ListTile(contentPadding:EdgeInsets.zero,title:Text(t('firstPaymentDate')),subtitle:Text(dateOnly(firstPaymentDate)),trailing:const Icon(Icons.calendar_today),onTap:()async{final d=await showDatePicker(context:context,initialDate:firstPaymentDate,firstDate:DateTime(2020),lastDate:DateTime(2100));if(d!=null)setDialogState((){firstPaymentDate=d;selectedDay=d.day;});}),
+                Text(t('dateHint')),
+              ],
             ]),
             actions:[TextButton(onPressed:()=>Navigator.pop(c),child:Text(t('cancel'))),FilledButton(onPressed:(){
-              final list=payments;list[e.key]['day']=selectedDay;list[e.key]['frequency']=selectedFrequency;
+              final list=payments;list[e.key]['day']=firstPaymentDate.day;list[e.key]['frequency']=selectedFrequency;
               final now=DateTime.now();
-              list[e.key]['start_date']=dateOnly((selectedFrequency=='weekly'||selectedFrequency=='biweekly')?firstPaymentDate:firstRecurringDate(DateTime(now.year,now.month,now.day),selectedDay,selectedFrequency));
+              list[e.key]['start_date']=dateOnly(selectedFrequency=='daily'?DateTime(now.year,now.month,now.day):firstPaymentDate);
               data['monthly_payments']=list;Navigator.pop(c);applyMonthly();
             },child:Text(t('save')))])));
         }),
@@ -758,6 +760,7 @@ class SettingsPanel extends StatefulWidget {
 }
 class _SettingsPanelState extends State<SettingsPanel> {
   late final TextEditingController income,goal,monthlySavings,api,model,url;
+  DateTime incomePayday=DateTime.now();
   late String currency,incomeFrequency,provider,lang,theme;
   @override void initState(){
     super.initState();
@@ -781,6 +784,7 @@ class _SettingsPanelState extends State<SettingsPanel> {
     url.text='${d['ai_base_url']??''}';
     currency='${d['currency']??'USD'}';
     incomeFrequency='${d['income_frequency']??'monthly'}';
+    incomePayday=DateTime.tryParse('${d['income_start_date']??''}')??DateTime.now();
     provider='${d['ai_provider']??'OpenAI'}';
     lang='${d['language']??'es'}';
     theme='${d['theme']??'light'}';
@@ -800,8 +804,7 @@ class _SettingsPanelState extends State<SettingsPanel> {
     if(inc==null||sav==null||monthly==null){widget.onInvalid();return;}
     await widget.onSave({
       'monthly_income':inc,'income_frequency':incomeFrequency,
-      'income_start_date':incomeFrequency=='${widget.data['income_frequency']??'monthly'}'
-        ?widget.data['income_start_date']:DateTime.now().toIso8601String().substring(0,10),
+      'income_start_date':'${incomePayday.year}-${incomePayday.month.toString().padLeft(2,'0')}-${incomePayday.day.toString().padLeft(2,'0')}',
       'savings_goal':sav,'monthly_savings':monthly,'currency':currency,
       'ai_provider':provider,'ai_api_key':api.text.trim(),
       'ai_model':model.text.trim(),'ai_base_url':url.text.trim(),
@@ -814,7 +817,8 @@ class _SettingsPanelState extends State<SettingsPanel> {
       widget.headingBuilder(t('settings')),
       widget.cardBuilder(Column(children:[
         TextField(controller:income,keyboardType:const TextInputType.numberWithOptions(decimal:true),decoration:InputDecoration(labelText:t('payAmount'))),
-        DropdownButtonFormField<String>(isExpanded:true,key:ValueKey('frequency-$incomeFrequency'),initialValue:['daily','weekly','biweekly','monthly','two_months','three_months'].contains(incomeFrequency)?incomeFrequency:'monthly',decoration:InputDecoration(labelText:t('payFrequency')),items:[DropdownMenuItem(value:'daily',child:Text(t('freqDaily'))),DropdownMenuItem(value:'weekly',child:Text(t('freqWeekly'))),DropdownMenuItem(value:'biweekly',child:Text(t('freqBiweekly'))),DropdownMenuItem(value:'monthly',child:Text(t('freqMonthly'))),DropdownMenuItem(value:'two_months',child:Text(t('freqTwoMonths'))),DropdownMenuItem(value:'three_months',child:Text(t('freqThreeMonths')))],onChanged:(v)=>setState(()=>incomeFrequency=v??'monthly')),
+        DropdownButtonFormField<String>(isExpanded:true,key:ValueKey('frequency-$incomeFrequency'),initialValue:['daily','weekly','biweekly','monthly','two_months','three_months'].contains(incomeFrequency)?incomeFrequency:'monthly',decoration:InputDecoration(labelText:t('payFrequency')),items:[DropdownMenuItem(value:'daily',child:Text(t('freqDaily'))),DropdownMenuItem(value:'weekly',child:Text(t('freqWeekly'))),DropdownMenuItem(value:'biweekly',child:Text(t('freqBiweekly'))),DropdownMenuItem(value:'monthly',child:Text(t('freqMonthly'))),DropdownMenuItem(value:'two_months',child:Text(t('freqTwoMonths'))),DropdownMenuItem(value:'three_months',child:Text(t('freqThreeMonths')))],onChanged:(v)=>setState((){final next=v??'monthly';if(next!=incomeFrequency){incomeFrequency=next;incomePayday=DateTime.now();}})),
+        if(incomeFrequency!='daily')ListTile(contentPadding:EdgeInsets.zero,title:Text(t('firstPaymentDate')),subtitle:Text('${incomePayday.year}-${incomePayday.month.toString().padLeft(2,'0')}-${incomePayday.day.toString().padLeft(2,'0')}'),trailing:const Icon(Icons.calendar_today),onTap:()async{final d=await showDatePicker(context:context,initialDate:incomePayday,firstDate:DateTime(2020),lastDate:DateTime(2100));if(d!=null)setState(()=>incomePayday=d);}),
         TextField(controller:goal,keyboardType:const TextInputType.numberWithOptions(decimal:true),decoration:InputDecoration(labelText:t('goal'))),
         TextField(controller:monthlySavings,keyboardType:const TextInputType.numberWithOptions(decimal:true),decoration:InputDecoration(labelText:t('monthlySavings'))),
         Text(t('monthlySavingsHint')),
@@ -829,6 +833,7 @@ class _SettingsPanelState extends State<SettingsPanel> {
         const SizedBox(height:12),FilledButton(onPressed:submit,child:Text(t('save')))
       ])),
       widget.cardBuilder(Column(children:[
+        ListTile(leading:const Icon(Icons.help_outline),title:Text(t('helpCenter')),onTap:()=>Navigator.of(context).push(MaterialPageRoute(builder:(_)=>MafiHelpCenter(language:'${widget.data['language']}')))),
         ListTile(leading:const Icon(Icons.category_outlined),title:Text(t('manageCategories')),onTap:widget.onManageCategories),
         ListTile(leading:const Icon(Icons.copy),title:Text(t('export')),onTap:widget.onExportBackup),
         ListTile(leading:const Icon(Icons.download),title:Text(t('import')),onTap:widget.onImportBackup),
@@ -896,7 +901,7 @@ class _WelcomeWizardState extends State<WelcomeWizard> {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text(word('Completa el nombre y el importe del pago, o deja ambos vacíos.','Complete the payment name and amount, or leave both blank.','Complétez le paiement ou laissez les deux champs vides.','Zahlung vervollständigen oder beide Felder leer lassen.','পেমেন্টের তথ্য পূরণ করুন বা ফাঁকা রাখুন।'))));
         return;
       }
-      bills.add({'name':pendingName,'amount':pendingAmount,'active':true,'day':paymentDay,'frequency':paymentFrequency,'start_date':(paymentFrequency=='weekly'||paymentFrequency=='biweekly')?'${firstBillDate.year}-${firstBillDate.month.toString().padLeft(2,'0')}-${firstBillDate.day.toString().padLeft(2,'0')}':wizardFirstRecurringDate(paymentDay,paymentFrequency)});
+      bills.add({'name':pendingName,'amount':pendingAmount,'active':true,'day':paymentDay,'frequency':paymentFrequency,'start_date':paymentFrequency=='daily'?wizardFirstRecurringDate(paymentDay,'daily'):'${firstBillDate.year}-${firstBillDate.month.toString().padLeft(2,'0')}-${firstBillDate.day.toString().padLeft(2,'0')}'});
       name.clear();payment.clear();paymentDay=DateTime.now().day;paymentFrequency='monthly';
     }
     widget.onComplete({'language':language,'currency':currency,'monthly_income':parse(income.text)??0,'income_frequency':incomeFrequency,'income_start_date':payday.toIso8601String().substring(0,10),'opening_balance':parse(opening.text)??0,'savings_goal':parse(goal.text)??0,'monthly_savings':parse(monthlySavings.text)??0,'monthly_payments':bills});
@@ -907,8 +912,7 @@ class _WelcomeWizardState extends State<WelcomeWizard> {
     if(step==2)...[TextField(controller:monthlySavings,onTap:()=>selectInitialZero(monthlySavings),keyboardType:const TextInputType.numberWithOptions(decimal:true),decoration:InputDecoration(labelText:word('¿Cuánto quieres ahorrar al mes?','How much to save monthly?','Combien épargner par mois ?','Monatlicher Sparbetrag','মাসিক সঞ্চয়'))),TextField(controller:goal,onTap:()=>selectInitialZero(goal),keyboardType:const TextInputType.numberWithOptions(decimal:true),decoration:InputDecoration(labelText:word('¿Cuál es tu objetivo total de ahorro?','Total savings target','Objectif total d’épargne','Gesamtsparziel','মোট সঞ্চয়ের লক্ষ্য'))),const SizedBox(height:12),Text(word('Mensualmente este dinero se descontará automáticamente del dinero disponible hasta llegar a tu objetivo.','Each month this amount will automatically be deducted from available money until you reach your goal.','Chaque mois, ce montant sera déduit de votre solde disponible jusqu’à votre objectif.','Jeden Monat wird dieser Betrag vom verfügbaren Geld abgezogen, bis das Ziel erreicht ist.','লক্ষ্য পূরণ না হওয়া পর্যন্ত প্রতি মাসে উপলব্ধ অর্থ থেকে এই পরিমাণ বাদ যাবে।'))],
     if(step==3)...[Text(word('Agrega tus gastos fijos (opcional)','Add recurring expenses (optional)','Ajoutez les dépenses récurrentes','Wiederkehrende Ausgaben','নিয়মিত খরচ যোগ করুন')),TextField(controller:name,decoration:InputDecoration(labelText:word('Nombre del gasto','Expense name','Nom de la dépense','Ausgabenname','খরচের নাম'))),TextField(controller:payment,keyboardType:const TextInputType.numberWithOptions(decimal:true),decoration:InputDecoration(labelText:word('Cantidad por pago','Amount per payment','Montant par paiement','Betrag pro Zahlung','প্রতি পেমেন্টের পরিমাণ'))),DropdownButtonFormField<String>(isExpanded:true,key:ValueKey('wizard-payment-$paymentFrequency'),initialValue:paymentFrequency,decoration:InputDecoration(labelText:word('¿Cada cuánto se repite este pago?','How often does this payment repeat?','À quelle fréquence ce paiement se répète-t-il ?','Wie oft wird diese Zahlung wiederholt?','এই পেমেন্ট কত ঘন ঘন হবে?')),items:[DropdownMenuItem(value:'daily',child:Text(word('Diariamente','Daily','Chaque jour','Täglich','প্রতিদিন'))),DropdownMenuItem(value:'weekly',child:Text(word('Semanalmente','Weekly','Chaque semaine','Wöchentlich','প্রতি সপ্তাহে'))),DropdownMenuItem(value:'biweekly',child:Text(word('Cada 2 semanas','Every 2 weeks','Toutes les 2 semaines','Alle 2 Wochen','প্রতি ২ সপ্তাহে'))),DropdownMenuItem(value:'monthly',child:Text(word('Mensualmente','Monthly','Chaque mois','Monatlich','প্রতি মাসে'))),DropdownMenuItem(value:'two_months',child:Text(word('Cada 2 meses','Every 2 months','Tous les 2 mois','Alle 2 Monate','প্রতি ২ মাসে'))),DropdownMenuItem(value:'three_months',child:Text(word('Cada 3 meses','Every 3 months','Tous les 3 mois','Alle 3 Monate','প্রতি ৩ মাসে')))],onChanged:(v)=>setState(()=>paymentFrequency=v??'monthly')),
     if(paymentFrequency=='daily') Text(word('Comienza hoy y se repite todos los días','Starts today and repeats daily','Commence aujourd’hui et se répète chaque jour','Beginnt heute und wiederholt sich täglich','আজ থেকে প্রতিদিন পুনরাবৃত্তি হবে'))
-    else if(paymentFrequency=='weekly'||paymentFrequency=='biweekly') ListTile(title:Text(word('Fecha del primer pago','First payment date','Date du premier paiement','Datum der ersten Zahlung','প্রথম পেমেন্টের তারিখ')),subtitle:Text('${firstBillDate.year}-${firstBillDate.month.toString().padLeft(2,'0')}-${firstBillDate.day.toString().padLeft(2,'0')}'),trailing:const Icon(Icons.calendar_today),onTap:()async{final d=await showDatePicker(context:context,initialDate:firstBillDate,firstDate:DateTime.now().subtract(const Duration(days:1)),lastDate:DateTime(2100));if(d!=null)setState(()=>firstBillDate=d);})
-    else DropdownButtonFormField<int>(initialValue:paymentDay,decoration:InputDecoration(labelText:word('Día del pago','Payment day','Jour du paiement','Zahlungstag','পেমেন্টের দিন')),items:List.generate(31,(i)=>DropdownMenuItem(value:i+1,child:Text('${i+1}'))),onChanged:(v)=>setState(()=>paymentDay=v??1)),const SizedBox(height:8),TextButton.icon(onPressed:(){final n=parse(payment.text);if(name.text.trim().isEmpty||n==null||n<=0)return;setState((){bills.add({'name':name.text.trim(),'amount':n,'active':true,'day':paymentDay,'frequency':paymentFrequency,'start_date':(paymentFrequency=='weekly'||paymentFrequency=='biweekly')?'${firstBillDate.year}-${firstBillDate.month.toString().padLeft(2,'0')}-${firstBillDate.day.toString().padLeft(2,'0')}':wizardFirstRecurringDate(paymentDay,paymentFrequency)});name.clear();payment.clear();paymentDay=DateTime.now().day;paymentFrequency='monthly';});},icon:const Icon(Icons.add),label:Text(word('Agregar pago','Add payment','Ajouter','Hinzufügen','যোগ করুন'))),...bills.map((b)=>ListTile(title:Text('${b['name']}'),trailing:Text('${b['amount']}')))],
+    else ListTile(title:Text(word('Fecha del primer pago','First payment date','Date du premier paiement','Datum der ersten Zahlung','প্রথম পেমেন্টের তারিখ')),subtitle:Text('${firstBillDate.year}-${firstBillDate.month.toString().padLeft(2,'0')}-${firstBillDate.day.toString().padLeft(2,'0')}'),trailing:const Icon(Icons.calendar_today),onTap:()async{final d=await showDatePicker(context:context,initialDate:firstBillDate,firstDate:DateTime(2020),lastDate:DateTime(2100));if(d!=null)setState((){firstBillDate=d;paymentDay=d.day;});}),const SizedBox(height:8),TextButton.icon(onPressed:(){final n=parse(payment.text);if(name.text.trim().isEmpty||n==null||n<=0)return;setState((){bills.add({'name':name.text.trim(),'amount':n,'active':true,'day':paymentDay,'frequency':paymentFrequency,'start_date':paymentFrequency=='daily'?wizardFirstRecurringDate(paymentDay,'daily'):'${firstBillDate.year}-${firstBillDate.month.toString().padLeft(2,'0')}-${firstBillDate.day.toString().padLeft(2,'0')}'});name.clear();payment.clear();paymentDay=DateTime.now().day;paymentFrequency='monthly';});},icon:const Icon(Icons.add),label:Text(word('Agregar pago','Add payment','Ajouter','Hinzufügen','যোগ করুন'))),...bills.map((b)=>ListTile(title:Text('${b['name']}'),trailing:Text('${b['amount']}')))],
     const SizedBox(height:30),Row(children:[if(step>0)TextButton(onPressed:()=>setState(()=>step--),child:Text(word('Atrás','Back','Retour','Zurück','পেছনে'))),const Spacer(),FilledButton(onPressed:next,child:Text(step==3?word('Empezar','Get started','Commencer','Starten','শুরু করুন'):word('Continuar','Continue','Continuer','Weiter','চালিয়ে যান')))])]))));
 }
 
@@ -1144,5 +1148,52 @@ class _CalculatorDialogState extends State<CalculatorDialog> {
         ),
       ),
     );
+  }
+}
+
+// Help & feedback never reads financial records or API credentials.
+class MafiHelpCenter extends StatefulWidget {
+  const MafiHelpCenter({super.key,required this.language});
+  final String language;
+  @override State<MafiHelpCenter> createState()=>_MafiHelpCenterState();
+}
+class _MafiHelpCenterState extends State<MafiHelpCenter> {
+  String? category;
+  final description=TextEditingController();
+  final location=TextEditingController();
+  String t(String key)=>helpLabels[widget.language]?[key]??helpLabels['en']![key]??key;
+  @override void dispose(){description.dispose();location.dispose();super.dispose();}
+  Future<void> send() async {
+    final subject=category=='bug'?'MafiFlow Mobile - Bug report':'MafiFlow Mobile - Feature suggestion';
+    final body='MafiFlow Mobile 1.0.6 Beta 17\nLanguage: ${widget.language}\nSection: ${location.text.trim()}\n\n${description.text.trim()}\n\n(Screenshots can be attached in your email app.)';
+    final uri=Uri(scheme:'mailto',path:'mafistudio.dev@gmail.com',query:Uri(queryParameters:{'subject':subject,'body':body}).query);
+    try {
+      if(!await launchUrl(uri,mode:LaunchMode.externalApplication))throw StateError('Email app unavailable');
+      if(mounted)ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text(t('emailConfirm'))));
+    } catch (_) {
+      if(mounted)ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text(t('emailFailed'))));
+    }
+  }
+  @override Widget build(BuildContext context){
+    final theme=Theme.of(context);
+    return Scaffold(appBar:AppBar(title:Text(t('helpCenter'))),body:ListView(padding:const EdgeInsets.all(16),children:[
+      Card(child:Column(children:[
+        ListTile(leading:const Icon(Icons.bug_report_outlined),title:Text(t('reportBug')),trailing:const Icon(Icons.chevron_right),onTap:()=>setState((){category='bug';description.clear();location.clear();})),
+        const Divider(height:1),
+        ListTile(leading:const Icon(Icons.lightbulb_outline),title:Text(t('suggestFeature')),trailing:const Icon(Icons.chevron_right),onTap:()=>setState((){category='idea';description.clear();location.clear();})),
+      ])),
+      if(category!=null)Card(child:Padding(padding:const EdgeInsets.all(16),child:Column(crossAxisAlignment:CrossAxisAlignment.stretch,children:[
+        Text(category=='bug'?t('reportBug'):t('suggestFeature'),style:theme.textTheme.titleMedium),
+        const SizedBox(height:12),
+        if(category=='bug')TextField(controller:location,decoration:InputDecoration(labelText:t('whereBug'),border:const OutlineInputBorder())),
+        const SizedBox(height:12),
+        TextField(controller:description,minLines:3,maxLines:6,onChanged:(_)=>setState((){}),decoration:InputDecoration(labelText:category=='bug'?t('describeBug'):t('describeIdea'),border:const OutlineInputBorder())),
+        const SizedBox(height:12),Text(t('emailPrivacy'),style:theme.textTheme.bodySmall),
+        const SizedBox(height:12),FilledButton.icon(onPressed:description.text.trim().isEmpty?null:send,icon:const Icon(Icons.mail_outline),label:Text(t('sendEmail'))),
+      ]))),
+      const SizedBox(height:12),Text(t('faq'),style:theme.textTheme.titleLarge),
+      for(final q in [['faqDataQ','faqDataA'],['faqPaymentsQ','faqPaymentsA'],['faqAiQ','faqAiA'],['faqStatsQ','faqStatsA']])
+        Card(child:ExpansionTile(title:Text(t(q[0])),children:[Padding(padding:const EdgeInsets.fromLTRB(16,0,16,16),child:Align(alignment:Alignment.centerLeft,child:Text(t(q[1]))))])),
+    ]));
   }
 }
