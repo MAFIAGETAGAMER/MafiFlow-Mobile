@@ -112,7 +112,6 @@ class _MafiFlowAppState extends State<MafiFlowApp> {
     final note='${x['note']??''}';
     if(note.startsWith('Ingreso automático (') && note.endsWith(')')){
       final frequency=note.substring('Ingreso automático ('.length,note.length-1);
-      final label= <String,String>{'daily':'incomeFrequencyDaily','weekly':'incomeFrequencyWeekly','biweekly':'incomeFrequencyBiweekly','monthly':'incomeFrequencyMonthly','two_months':'freqTwoMonths','three_months':'freqThreeMonths'}[frequency];
       final lang='${data['language']??'es'}';
       const translations={
         'es':['Ingreso automático','Diariamente','Semanalmente','Cada 2 semanas','Mensualmente'],
@@ -1125,7 +1124,7 @@ class _CalculatorDialogState extends State<CalculatorDialog> {
                           clipBehavior: Clip.antiAlias,
                           child: InkWell(onTap: () => press(row[i]),
                             child: Center(child: row[i] == '⌫'
-                              ? const Icon(Icons.backspace_outlined, color: danger, size: 28)
+                              ? Icon(Icons.backspace_outlined, color: danger, size: 28)
                               : Text(row[i], style: TextStyle(
                                   color: row[i] == 'C' ? danger : row[i] == '=' ? Colors.white : foreground,
                                   fontSize: row[i] == '()' ? 24 : 32,
