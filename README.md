@@ -49,3 +49,9 @@ Do not uninstall the existing app if you want to keep locally stored data.
 - Translated opening balance, currency, category management and chart labels in ES/EN/FR/DE/BN.
 - Saved data continues using `mafiflow_data` in SharedPreferences; update without uninstalling.
 - Android workflow generates only Android icons; iOS icons should be generated in the separate iOS build from the same `assets/app_icon.png`.
+
+
+## 1.0.9 beta 20
+- CUP available in currency settings and onboarding.
+- Calculator expression and live result scale to available width; keypad adapts to viewport size.
+- Existing Android launcher icon preserved.

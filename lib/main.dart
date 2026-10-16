@@ -94,7 +94,7 @@ String percentChange(double current, double previous) {
 String stampNow() => DateTime.now().toIso8601String().replaceFirst('T',' ').substring(0,19);
 double number(dynamic n) => n is num ? n.toDouble() : double.tryParse('$n') ?? 0;
 String activeCurrency='USD';
-String money(num v) => '${{'USD':'\$','CAD':'CA\$','EUR':'€','GBP':'£','BDT':'৳'}[activeCurrency]??'\$'}${v.toStringAsFixed(2)}';
+String money(num v) => '${{'USD':'\$','CAD':'CA\$','EUR':'€','GBP':'£','BDT':'৳','CUP':'CUP '}[activeCurrency]??'\$'}${v.toStringAsFixed(2)}';
 List<Map<String,dynamic>> records(dynamic v) => v is List ? v.whereType<Map>().map((x)=>Map<String,dynamic>.from(x)).toList() : [];
 
 class MafiFlowApp extends StatefulWidget { const MafiFlowApp({super.key}); @override State<MafiFlowApp> createState()=>_MafiFlowAppState(); }
@@ -319,7 +319,7 @@ class _MafiFlowAppState extends State<MafiFlowApp> {
   void notice(String text){messengerKey.currentState?.showSnackBar(SnackBar(content:Text(text)));}
   Widget card(Widget child)=>Card(margin:const EdgeInsets.symmetric(vertical:7),child:Padding(padding:const EdgeInsets.all(16),child:child));
   Widget heading(String text)=>Padding(padding:const EdgeInsets.only(top:12,bottom:8),child:Text(text,style:TextStyle(fontSize:22,fontWeight:FontWeight.bold,color:dark?Colors.white:Colors.black87)));
-  @override Widget build(BuildContext context){final lang='${data['language']}';activeCurrency='${data['currency']??'USD'}';return MaterialApp(navigatorKey:navKey,scaffoldMessengerKey:messengerKey,debugShowCheckedModeBanner:false,title:'MafiFlow Mobile',theme:ThemeData(colorScheme:ColorScheme.fromSeed(seedColor:green),useMaterial3:true),darkTheme:ThemeData(colorScheme:ColorScheme.fromSeed(seedColor:green,brightness:Brightness.dark),useMaterial3:true),themeMode:dark?ThemeMode.dark:ThemeMode.light,home:!ready?const Scaffold(body:Center(child:CircularProgressIndicator())):data['setup_completed']!=true?WelcomeWizard(onComplete:(v) async {data.addAll(v);data['setup_completed']=true;applyMonthly();applySavingsMonthly();await save();}):Builder(builder:(shellContext)=>Scaffold(appBar:AppBar(title:Row(children:[Image.asset('assets/logo.png',height:34),const SizedBox(width:10),const Text('MafiFlow Mobile')]),actions:[IconButton(tooltip:t('helpCenter'),icon:const Icon(Icons.help_outline),onPressed:()=>Navigator.of(dialogContext).push(MaterialPageRoute(builder:(_)=>MafiHelpCenter(language:'${data['language']}')))),IconButton(tooltip:t('calculator'),icon:const Icon(Icons.calculate_outlined),onPressed:()=>showDialog(context:dialogContext,builder:(_)=>CalculatorDialog(title:t('calculator')))),IconButton(icon:const Icon(Icons.settings),onPressed:()=>setState(()=>tab=5))]),body:SafeArea(child:LayoutBuilder(builder:(ctx,box){final content=IndexedStack(index:tab,children:[home(),transactions(),monthly(),stats(),Advisor(data:data,lang:lang,onSave:save),settings()]);return content;})),bottomNavigationBar:NavigationBar(selectedIndex:tab,onDestinationSelected:(v)=>setState(()=>tab=v),labelBehavior:NavigationDestinationLabelBehavior.onlyShowSelected,destinations:[NavigationDestination(icon:const Icon(Icons.home_outlined),label:t('home')),NavigationDestination(icon:const Icon(Icons.receipt_long),label:t('moves')),NavigationDestination(icon:const Icon(Icons.event_repeat),label:t('monthly')),NavigationDestination(icon:const Icon(Icons.pie_chart_outline),label:t('stats')),NavigationDestination(icon:const Icon(Icons.smart_toy_outlined),label:t('ai')),NavigationDestination(icon:const Icon(Icons.settings_outlined),label:t('settings'))]))));}
+  @override Widget build(BuildContext context){final lang='${data['language']}';activeCurrency='${data['currency']??'USD'}';return MaterialApp(navigatorKey:navKey,scaffoldMessengerKey:messengerKey,debugShowCheckedModeBanner:false,title:'MafiFlow',theme:ThemeData(colorScheme:ColorScheme.fromSeed(seedColor:green),useMaterial3:true),darkTheme:ThemeData(colorScheme:ColorScheme.fromSeed(seedColor:green,brightness:Brightness.dark),useMaterial3:true),themeMode:dark?ThemeMode.dark:ThemeMode.light,home:!ready?const Scaffold(body:Center(child:CircularProgressIndicator())):data['setup_completed']!=true?WelcomeWizard(onComplete:(v) async {data.addAll(v);data['setup_completed']=true;applyMonthly();applySavingsMonthly();await save();}):Builder(builder:(shellContext)=>Scaffold(appBar:AppBar(title:Row(children:[Image.asset('assets/logo.png',height:34),const SizedBox(width:10),const Text('MafiFlow')]),actions:[IconButton(tooltip:t('helpCenter'),icon:const Icon(Icons.help_outline),onPressed:()=>Navigator.of(dialogContext).push(MaterialPageRoute(builder:(_)=>MafiHelpCenter(language:'${data['language']}')))),IconButton(tooltip:t('calculator'),icon:const Icon(Icons.calculate_outlined),onPressed:()=>showDialog(context:dialogContext,builder:(_)=>CalculatorDialog(title:t('calculator')))),IconButton(icon:const Icon(Icons.settings),onPressed:()=>setState(()=>tab=5))]),body:SafeArea(child:LayoutBuilder(builder:(ctx,box){final content=IndexedStack(index:tab,children:[home(),transactions(),monthly(),stats(),Advisor(data:data,lang:lang,onSave:save),settings()]);return content;})),bottomNavigationBar:NavigationBar(selectedIndex:tab,onDestinationSelected:(v)=>setState(()=>tab=v),labelBehavior:NavigationDestinationLabelBehavior.onlyShowSelected,destinations:[NavigationDestination(icon:const Icon(Icons.home_outlined),label:t('home')),NavigationDestination(icon:const Icon(Icons.receipt_long),label:t('moves')),NavigationDestination(icon:const Icon(Icons.event_repeat),label:t('monthly')),NavigationDestination(icon:const Icon(Icons.pie_chart_outline),label:t('stats')),NavigationDestination(icon:const Icon(Icons.smart_toy_outlined),label:t('ai')),NavigationDestination(icon:const Icon(Icons.settings_outlined),label:t('settings'))]))));}
   Widget scroll(List<Widget> widgets)=>ListView(padding:const EdgeInsets.all(16),children:widgets);
   Widget stat(String label,double value,IconData icon,Color color)=>card(Row(children:[Icon(icon,color:color),const SizedBox(width:14),Expanded(child:Text(label)),Text(money(value),style:TextStyle(fontWeight:FontWeight.bold,fontSize:19,color:color))]));
   Widget home(){
@@ -823,11 +823,11 @@ class _SettingsPanelState extends State<SettingsPanel> {
         TextField(controller:monthlySavings,keyboardType:const TextInputType.numberWithOptions(decimal:true),decoration:InputDecoration(labelText:t('monthlySavings'))),
         Text(t('monthlySavingsHint')),
         // Opening balance is set only in the onboarding wizard. Do not edit it here.
-        DropdownButtonFormField<String>(key:ValueKey('currency-$currency'),initialValue:currency,decoration:InputDecoration(labelText:t('currency')),items:['USD','CAD','EUR','GBP','BDT'].map((v)=>DropdownMenuItem(value:v,child:Text(v))).toList(),onChanged:(v)=>setState(()=>currency=v??'USD')),
+        DropdownButtonFormField<String>(key:ValueKey('currency-$currency'),initialValue:currency,decoration:InputDecoration(labelText:t('currency')),items:['USD','CAD','EUR','GBP','BDT','CUP'].map((v)=>DropdownMenuItem(value:v,child:Text(v))).toList(),onChanged:(v)=>setState(()=>currency=v??'USD')),
         DropdownButtonFormField<String>(key:ValueKey('provider-$provider'),initialValue:['OpenAI','NVIDIA','Custom'].contains(provider)?provider:'OpenAI',decoration:InputDecoration(labelText:t('provider')),items:['OpenAI','NVIDIA','Custom'].map((e)=>DropdownMenuItem(value:e,child:Text(e))).toList(),onChanged:(v)=>setState(()=>provider=v??'OpenAI')),
         TextField(controller:api,obscureText:true,decoration:InputDecoration(labelText:t('key'))),
         TextField(controller:model,decoration:InputDecoration(labelText:t('model'))),
-        TextField(controller:url,decoration:InputDecoration(labelText:t('custom'))),
+        if(provider=='Custom') TextField(controller:url,decoration:InputDecoration(labelText:t('custom'))),
         DropdownButtonFormField<String>(key:ValueKey('language-$lang'),initialValue:const ['es','en','fr','de','bn'].contains(lang)?lang:'es',decoration:InputDecoration(labelText:t('language')),items:const [DropdownMenuItem(value:'es',child:Text('Español')),DropdownMenuItem(value:'en',child:Text('English')),DropdownMenuItem(value:'fr',child:Text('Français')),DropdownMenuItem(value:'de',child:Text('Deutsch')),DropdownMenuItem(value:'bn',child:Text('বাংলা'))],onChanged:(v)=>setState(()=>lang=v??'es')),
         DropdownButtonFormField<String>(key:ValueKey('theme-$theme'),initialValue:theme,decoration:InputDecoration(labelText:t('theme')),items:[DropdownMenuItem(value:'light',child:Text(t('light'))),DropdownMenuItem(value:'dark',child:Text(t('dark')))],onChanged:(v)=>setState(()=>theme=v??'light')),
         const SizedBox(height:12),FilledButton(onPressed:submit,child:Text(t('save')))
@@ -906,8 +906,8 @@ class _WelcomeWizardState extends State<WelcomeWizard> {
     }
     widget.onComplete({'language':language,'currency':currency,'monthly_income':parse(income.text)??0,'income_frequency':incomeFrequency,'income_start_date':payday.toIso8601String().substring(0,10),'opening_balance':parse(opening.text)??0,'savings_goal':parse(goal.text)??0,'monthly_savings':parse(monthlySavings.text)??0,'monthly_payments':bills});
   }
-  @override Widget build(BuildContext context)=>Scaffold(appBar:AppBar(title:const Text('MafiFlow Mobile')),body:Center(child:ConstrainedBox(constraints:const BoxConstraints(maxWidth:540),child:ListView(padding:const EdgeInsets.all(24),children:[LinearProgressIndicator(value:(step+1)/4),const SizedBox(height:28),Text(word('¡Bienvenido a MafiFlow!','Welcome to MafiFlow!','Bienvenue sur MafiFlow !','Willkommen bei MafiFlow!','MafiFlow-তে স্বাগতম!'),style:Theme.of(context).textTheme.headlineSmall),const SizedBox(height:22),
-    if(step==0)...[Text(word('Elige idioma y moneda','Choose language and currency','Choisissez langue et devise','Sprache und Währung wählen','ভাষা ও মুদ্রা নির্বাচন করুন')),DropdownButtonFormField<String>(initialValue:language,items:const [DropdownMenuItem(value:'es',child:Text('Español')),DropdownMenuItem(value:'en',child:Text('English')),DropdownMenuItem(value:'fr',child:Text('Français')),DropdownMenuItem(value:'de',child:Text('Deutsch')),DropdownMenuItem(value:'bn',child:Text('বাংলা'))],onChanged:(v)=>setState(()=>language=v??'es')),DropdownButtonFormField<String>(initialValue:currency,items:['USD','CAD','EUR','GBP','BDT'].map((v)=>DropdownMenuItem(value:v,child:Text(v))).toList(),onChanged:(v)=>setState(()=>currency=v??'USD'))],
+  @override Widget build(BuildContext context)=>Scaffold(appBar:AppBar(title:const Text('MafiFlow')),body:Center(child:ConstrainedBox(constraints:const BoxConstraints(maxWidth:540),child:ListView(padding:const EdgeInsets.all(24),children:[LinearProgressIndicator(value:(step+1)/4),const SizedBox(height:28),Text(word('¡Bienvenido a MafiFlow!','Welcome to MafiFlow!','Bienvenue sur MafiFlow !','Willkommen bei MafiFlow!','MafiFlow-তে স্বাগতম!'),style:Theme.of(context).textTheme.headlineSmall),const SizedBox(height:22),
+    if(step==0)...[Text(word('Elige idioma y moneda','Choose language and currency','Choisissez langue et devise','Sprache und Währung wählen','ভাষা ও মুদ্রা নির্বাচন করুন')),DropdownButtonFormField<String>(initialValue:language,items:const [DropdownMenuItem(value:'es',child:Text('Español')),DropdownMenuItem(value:'en',child:Text('English')),DropdownMenuItem(value:'fr',child:Text('Français')),DropdownMenuItem(value:'de',child:Text('Deutsch')),DropdownMenuItem(value:'bn',child:Text('বাংলা'))],onChanged:(v)=>setState(()=>language=v??'es')),DropdownButtonFormField<String>(initialValue:currency,items:['USD','CAD','EUR','GBP','BDT','CUP'].map((v)=>DropdownMenuItem(value:v,child:Text(v))).toList(),onChanged:(v)=>setState(()=>currency=v??'USD'))],
     if(step==1)...[Text(word('Configura tus finanzas iniciales','Set up your starting finances','Configurez vos finances','Finanzen einrichten','প্রাথমিক অর্থ সেট করুন')),TextField(controller:income,onTap:()=>selectInitialZero(income),keyboardType:const TextInputType.numberWithOptions(decimal:true),decoration:InputDecoration(labelText:word('Cantidad que recibes por pago','Amount per payday','Montant par paie','Betrag pro Zahlung','প্রতি বেতনের পরিমাণ'))),DropdownButtonFormField<String>(isExpanded:true,initialValue:incomeFrequency,decoration:InputDecoration(labelText:word('¿Cada cuánto cobras?','How often are you paid?','À quelle fréquence êtes-vous payé ?','Wie oft wirst du bezahlt?','কত ঘন ঘন বেতন পান?')),items:[DropdownMenuItem(value:'daily',child:Text(word('Diariamente','Daily','Chaque jour','Täglich','প্রতিদিন'))),DropdownMenuItem(value:'weekly',child:Text(word('Semanalmente','Weekly','Chaque semaine','Wöchentlich','প্রতি সপ্তাহে'))),DropdownMenuItem(value:'biweekly',child:Text(word('Cada 2 semanas','Every 2 weeks','Toutes les 2 semaines','Alle 2 Wochen','প্রতি ২ সপ্তাহে'))),DropdownMenuItem(value:'monthly',child:Text(word('Mensualmente','Monthly','Chaque mois','Monatlich','প্রতি মাসে'))),DropdownMenuItem(value:'two_months',child:Text(word('Cada 2 meses','Every 2 months','Tous les 2 mois','Alle 2 Monate','প্রতি ২ মাসে'))),DropdownMenuItem(value:'three_months',child:Text(word('Cada 3 meses','Every 3 months','Tous les 3 mois','Alle 3 Monate','প্রতি ৩ মাসে')))],onChanged:(v)=>setState(()=>incomeFrequency=v??'monthly')),const SizedBox(height:8),ListTile(contentPadding:EdgeInsets.zero,title:Text(word('Fecha del próximo cobro','Next payday','Date du premier paiement','Erster Zahltag','প্রথম বেতনের তারিখ')),subtitle:Text('${payday.year}-${payday.month.toString().padLeft(2,'0')}-${payday.day.toString().padLeft(2,'0')}'),trailing:const Icon(Icons.calendar_today),onTap:()async{final chosen=await showDatePicker(context:context,initialDate:payday,firstDate:DateTime(2020),lastDate:DateTime(2100));if(chosen!=null)setState(()=>payday=chosen);}),TextField(controller:opening,onTap:()=>selectInitialZero(opening),keyboardType:const TextInputType.numberWithOptions(decimal:true),decoration:InputDecoration(labelText:word('Saldo disponible ahora (no se suma al salario)','Available balance now (not added to salary)','Solde actuel (pas un revenu)','Aktueller Kontostand (kein Einkommen)','বর্তমান ব্যালেন্স')))],
     if(step==2)...[TextField(controller:monthlySavings,onTap:()=>selectInitialZero(monthlySavings),keyboardType:const TextInputType.numberWithOptions(decimal:true),decoration:InputDecoration(labelText:word('¿Cuánto quieres ahorrar al mes?','How much to save monthly?','Combien épargner par mois ?','Monatlicher Sparbetrag','মাসিক সঞ্চয়'))),TextField(controller:goal,onTap:()=>selectInitialZero(goal),keyboardType:const TextInputType.numberWithOptions(decimal:true),decoration:InputDecoration(labelText:word('¿Cuál es tu objetivo total de ahorro?','Total savings target','Objectif total d’épargne','Gesamtsparziel','মোট সঞ্চয়ের লক্ষ্য'))),const SizedBox(height:12),Text(word('Mensualmente este dinero se descontará automáticamente del dinero disponible hasta llegar a tu objetivo.','Each month this amount will automatically be deducted from available money until you reach your goal.','Chaque mois, ce montant sera déduit de votre solde disponible jusqu’à votre objectif.','Jeden Monat wird dieser Betrag vom verfügbaren Geld abgezogen, bis das Ziel erreicht ist.','লক্ষ্য পূরণ না হওয়া পর্যন্ত প্রতি মাসে উপলব্ধ অর্থ থেকে এই পরিমাণ বাদ যাবে।'))],
     if(step==3)...[Text(word('Agrega tus gastos fijos (opcional)','Add recurring expenses (optional)','Ajoutez les dépenses récurrentes','Wiederkehrende Ausgaben','নিয়মিত খরচ যোগ করুন')),TextField(controller:name,decoration:InputDecoration(labelText:word('Nombre del gasto','Expense name','Nom de la dépense','Ausgabenname','খরচের নাম'))),TextField(controller:payment,keyboardType:const TextInputType.numberWithOptions(decimal:true),decoration:InputDecoration(labelText:word('Cantidad por pago','Amount per payment','Montant par paiement','Betrag pro Zahlung','প্রতি পেমেন্টের পরিমাণ'))),DropdownButtonFormField<String>(isExpanded:true,key:ValueKey('wizard-payment-$paymentFrequency'),initialValue:paymentFrequency,decoration:InputDecoration(labelText:word('¿Cada cuánto se repite este pago?','How often does this payment repeat?','À quelle fréquence ce paiement se répète-t-il ?','Wie oft wird diese Zahlung wiederholt?','এই পেমেন্ট কত ঘন ঘন হবে?')),items:[DropdownMenuItem(value:'daily',child:Text(word('Diariamente','Daily','Chaque jour','Täglich','প্রতিদিন'))),DropdownMenuItem(value:'weekly',child:Text(word('Semanalmente','Weekly','Chaque semaine','Wöchentlich','প্রতি সপ্তাহে'))),DropdownMenuItem(value:'biweekly',child:Text(word('Cada 2 semanas','Every 2 weeks','Toutes les 2 semaines','Alle 2 Wochen','প্রতি ২ সপ্তাহে'))),DropdownMenuItem(value:'monthly',child:Text(word('Mensualmente','Monthly','Chaque mois','Monatlich','প্রতি মাসে'))),DropdownMenuItem(value:'two_months',child:Text(word('Cada 2 meses','Every 2 months','Tous les 2 mois','Alle 2 Monate','প্রতি ২ মাসে'))),DropdownMenuItem(value:'three_months',child:Text(word('Cada 3 meses','Every 3 months','Tous les 3 mois','Alle 3 Monate','প্রতি ৩ মাসে')))],onChanged:(v)=>setState(()=>paymentFrequency=v??'monthly')),
@@ -1083,72 +1083,106 @@ class _CalculatorDialogState extends State<CalculatorDialog> {
       ['1', '2', '3', '+'],
       ['()', '0', '.', '='],
     ];
+
+    final viewport = MediaQuery.sizeOf(context);
+    // The dialog must fit inside the real viewport, including on small phones
+    // and on Windows when the window is resized.
+    final dialogWidth = min(410.0, max(0.0, viewport.width - 32.0));
+    final dialogHeight = max(0.0, viewport.height - 48.0);
+    const padding = 16.0;
+    const gap = 8.0;
+    final availableKeypadWidth = max(0.0, dialogWidth - padding * 2);
+    final widthLimited = max(0.0, (availableKeypadWidth - gap * 3) / 4);
+    // Account for the title, expression, live result, vertical padding and gaps.
+    // If the window becomes extremely short, scrolling is available instead.
+    final heightLimited = max(0.0, (dialogHeight - 180.0 - gap * 4) / 5);
+    final buttonSize = min(78.0, min(widthLimited, max(28.0, heightLimited)));
+    final iconSize = (buttonSize * 0.32).clamp(12.0, 27.0);
+    final textSize = (buttonSize * 0.43).clamp(12.0, 33.0);
+
+    // The whole display is bounded. FittedBox scales the *text itself*, not
+    // only its surrounding rectangle, when the expression becomes long.
+    Widget adaptiveNumber(String value, {required double fontSize,
+      required double height, required Color color}) {
+      return SizedBox(
+        width: double.infinity,
+        height: height,
+        child: Align(
+          alignment: Alignment.centerRight,
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerRight,
+            child: Text(
+              value,
+              maxLines: 1,
+              softWrap: false,
+              textAlign: TextAlign.right,
+              style: TextStyle(fontSize: fontSize, color: color),
+            ),
+          ),
+        ),
+      );
+    }
+
     return Dialog(
       backgroundColor: background,
-      insetPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 18),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 410),
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 18),
-          child: Column(mainAxisSize: MainAxisSize.min, children: [
-            Row(children: [
-              Expanded(child: Text(widget.title, style: TextStyle(color: muted, fontSize: 15))),
-              IconButton(onPressed: () => Navigator.pop(context), icon: Icon(Icons.close, color: muted)),
-            ]),
-            SizedBox(
-              height: 146,
-              child: Column(crossAxisAlignment: CrossAxisAlignment.end, mainAxisAlignment: MainAxisAlignment.end, children: [
-                SizedBox(width: double.infinity, height: 75, child: SingleChildScrollView(
-                  reverse: true,
-                  scrollDirection: Axis.horizontal,
-                  child: Align(alignment: Alignment.centerRight, child: Text(
-                    expression.isEmpty ? '0' : expression,
-                    maxLines: 1,
-                    style: TextStyle(fontSize: 39, color: foreground, fontWeight: FontWeight.w400),
-                  )),
-                )),
-                const SizedBox(height: 4),
-                Text(preview, textAlign: TextAlign.right,
-                  style: TextStyle(fontSize: 27, color: muted)),
-                const SizedBox(height: 12),
+      child: SizedBox(
+        width: dialogWidth,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxHeight: dialogHeight),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 18),
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              Row(children: [
+                Expanded(child: Text(widget.title,
+                  maxLines: 1, overflow: TextOverflow.ellipsis,
+                  style: TextStyle(color: muted, fontSize: 20))),
+                IconButton(onPressed: () => Navigator.pop(context),
+                  icon: Icon(Icons.close, color: muted)),
               ]),
-            ),
-            LayoutBuilder(builder: (context, constraints) {
-              final buttonSize = (constraints.maxWidth - 3 * 10) / 4;
-              return Column(children: [
-                for (final row in rows) ...[
-                  Row(children: [
-                    for (var i = 0; i < row.length; i++) ...[
-                      if (i > 0) const SizedBox(width: 10),
-                      SizedBox(width: buttonSize, height: buttonSize,
-                        child: Material(
-                          color: row[i] == '=' ? accent : (i == 3 ? operation : normal),
-                          shape: const CircleBorder(),
-                          clipBehavior: Clip.antiAlias,
-                          child: InkWell(onTap: () => press(row[i]),
-                            child: Center(child: row[i] == '⌫'
-                              ? Icon(Icons.backspace_outlined, color: danger, size: 28)
-                              : Text(row[i], style: TextStyle(
-                                  color: row[i] == 'C' ? danger : row[i] == '=' ? Colors.white : foreground,
-                                  fontSize: row[i] == '()' ? 24 : 32,
-                                  fontWeight: FontWeight.w400,
-                                )),
-                            ),
+              const SizedBox(height: 8),
+              adaptiveNumber(expression.isEmpty ? '0' : expression,
+                fontSize: 38, height: 46, color: foreground),
+              adaptiveNumber(preview,
+                fontSize: 21, height: 27, color: muted),
+              const SizedBox(height: 12),
+              for (var r = 0; r < rows.length; r++) ...[
+                Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                  for (var i = 0; i < rows[r].length; i++) ...[
+                    if (i > 0) const SizedBox(width: gap),
+                    SizedBox(
+                      width: buttonSize, height: buttonSize,
+                      child: Material(
+                        color: rows[r][i] == '=' ? accent : (i == 3 ? operation : normal),
+                        shape: const CircleBorder(),
+                        clipBehavior: Clip.antiAlias,
+                        child: InkWell(
+                          onTap: () => press(rows[r][i]),
+                          child: Center(child: rows[r][i] == '⌫'
+                            ? Icon(Icons.backspace_outlined, color: danger, size: iconSize)
+                            : Text(rows[r][i], style: TextStyle(
+                                color: rows[r][i] == 'C' ? danger
+                                  : rows[r][i] == '=' ? Colors.white : foreground,
+                                fontSize: rows[r][i] == '()' ? textSize * 0.8 : textSize,
+                                fontWeight: FontWeight.w400,
+                              )),
                           ),
                         ),
                       ),
-                    ],
-                  ]),
-                  if (row != rows.last) const SizedBox(height: 10),
-                ],
-              ]);
-            }),
-          ]),
+                    ),
+                  ],
+                ]),
+                if (r != rows.length - 1) const SizedBox(height: gap),
+              ],
+            ]),
+          ),
         ),
       ),
     );
   }
+
 }
 
 // Help & feedback never reads financial records or API credentials.
@@ -1164,8 +1198,8 @@ class _MafiHelpCenterState extends State<MafiHelpCenter> {
   String t(String key)=>helpLabels[widget.language]?[key]??helpLabels['en']![key]??key;
   @override void dispose(){description.dispose();location.dispose();super.dispose();}
   Future<void> send() async {
-    final subject=category=='bug'?'MafiFlow Mobile - Bug report':'MafiFlow Mobile - Feature suggestion';
-    final body='MafiFlow Mobile 1.0.6 Beta 17\nLanguage: ${widget.language}\nSection: ${location.text.trim()}\n\n${description.text.trim()}\n\n(Screenshots can be attached in your email app.)';
+    final subject=category=='bug'?'MafiFlow - Bug report':'MafiFlow - Feature suggestion';
+    final body='MafiFlow 1.0.7 Beta 18\nLanguage: ${widget.language}\nSection: ${location.text.trim()}\n\n${description.text.trim()}\n\n(Screenshots can be attached in your email app.)';
     final uri=Uri(scheme:'mailto',path:'mafistudio.dev@gmail.com',query:Uri(queryParameters:{'subject':subject,'body':body}).query);
     try {
       if(!await launchUrl(uri,mode:LaunchMode.externalApplication))throw StateError('Email app unavailable');
