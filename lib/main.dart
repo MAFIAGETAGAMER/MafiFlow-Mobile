@@ -1192,42 +1192,198 @@ class MafiHelpCenter extends StatefulWidget {
   @override State<MafiHelpCenter> createState()=>_MafiHelpCenterState();
 }
 class _MafiHelpCenterState extends State<MafiHelpCenter> {
-  String? category;
-  final description=TextEditingController();
-  final location=TextEditingController();
-  String t(String key)=>helpLabels[widget.language]?[key]??helpLabels['en']![key]??key;
-  @override void dispose(){description.dispose();location.dispose();super.dispose();}
-  Future<void> send() async {
-    final subject=category=='bug'?'MafiFlow - Bug report':'MafiFlow - Feature suggestion';
-    final body='MafiFlow 1.0.7 Beta 18\nLanguage: ${widget.language}\nSection: ${location.text.trim()}\n\n${description.text.trim()}\n\n(Screenshots can be attached in your email app.)';
-    final uri=Uri(scheme:'mailto',path:'mafistudio.dev@gmail.com',query:Uri(queryParameters:{'subject':subject,'body':body}).query);
+  final description = TextEditingController();
+  final suggestion = TextEditingController();
+  final location = TextEditingController();
+
+  String t(String key) =>
+      helpLabels[widget.language]?[key] ?? helpLabels['en']![key] ?? key;
+
+  @override
+  void dispose() {
+    description.dispose();
+    suggestion.dispose();
+    location.dispose();
+    super.dispose();
+  }
+
+  Future<void> send(String category, TextEditingController message) async {
+    if (message.text.trim().isEmpty) return;
+    final subject = 'MafiFlow - ${t(category == 'bug' ? 'reportBug' : 'suggestFeature')}';
+    final section = category == 'bug' ? location.text.trim() : '';
+    final body = [
+      'MafiFlow',
+      widget.language,
+      if (section.isNotEmpty) '${t('whereBug')}\n$section',
+      '${t(category == 'bug' ? 'describeBug' : 'describeIdea')}\n${message.text.trim()}',
+    ].join('\n\n');
+    final uri = Uri(
+      scheme: 'mailto',
+      path: 'mafistudio.dev@gmail.com',
+      query: Uri(queryParameters: {'subject': subject, 'body': body}).query,
+    );
     try {
-      if(!await launchUrl(uri,mode:LaunchMode.externalApplication))throw StateError('Email app unavailable');
-      if(mounted)ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text(t('emailConfirm'))));
+      if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+        throw StateError('Email app unavailable');
+      }
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(t('emailConfirm'))),
+        );
+      }
     } catch (_) {
-      if(mounted)ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text(t('emailFailed'))));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(t('emailFailed'))),
+        );
+      }
     }
   }
-  @override Widget build(BuildContext context){
-    final theme=Theme.of(context);
-    return Scaffold(appBar:AppBar(title:Text(t('helpCenter'))),body:ListView(padding:const EdgeInsets.all(16),children:[
-      Card(child:Column(children:[
-        ListTile(leading:const Icon(Icons.bug_report_outlined),title:Text(t('reportBug')),trailing:const Icon(Icons.chevron_right),onTap:()=>setState((){category='bug';description.clear();location.clear();})),
-        const Divider(height:1),
-        ListTile(leading:const Icon(Icons.lightbulb_outline),title:Text(t('suggestFeature')),trailing:const Icon(Icons.chevron_right),onTap:()=>setState((){category='idea';description.clear();location.clear();})),
-      ])),
-      if(category!=null)Card(child:Padding(padding:const EdgeInsets.all(16),child:Column(crossAxisAlignment:CrossAxisAlignment.stretch,children:[
-        Text(category=='bug'?t('reportBug'):t('suggestFeature'),style:theme.textTheme.titleMedium),
-        const SizedBox(height:12),
-        if(category=='bug')TextField(controller:location,decoration:InputDecoration(labelText:t('whereBug'),border:const OutlineInputBorder())),
-        const SizedBox(height:12),
-        TextField(controller:description,minLines:3,maxLines:6,onChanged:(_)=>setState((){}),decoration:InputDecoration(labelText:category=='bug'?t('describeBug'):t('describeIdea'),border:const OutlineInputBorder())),
-        const SizedBox(height:12),Text(t('emailPrivacy'),style:theme.textTheme.bodySmall),
-        const SizedBox(height:12),FilledButton.icon(onPressed:description.text.trim().isEmpty?null:send,icon:const Icon(Icons.mail_outline),label:Text(t('sendEmail'))),
-      ]))),
-      const SizedBox(height:12),Text(t('faq'),style:theme.textTheme.titleLarge),
-      for(final q in [['faqDataQ','faqDataA'],['faqPaymentsQ','faqPaymentsA'],['faqAiQ','faqAiA'],['faqStatsQ','faqStatsA']])
-        Card(child:ExpansionTile(title:Text(t(q[0])),children:[Padding(padding:const EdgeInsets.fromLTRB(16,0,16,16),child:Align(alignment:Alignment.centerLeft,child:Text(t(q[1]))))])),
-    ]));
+
+  Widget expansionCard({
+    required String id,
+    required String title,
+    IconData? icon,
+    required Widget content,
+  }) {
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 6),
+      clipBehavior: Clip.antiAlias,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: ExpansionTile(
+        key: PageStorageKey<String>('help_$id'),
+        maintainState: true,
+        shape: const Border(),
+        collapsedShape: const Border(),
+        tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        childrenPadding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
+        leading: icon == null ? null : Icon(icon),
+        title: Text(t(title), softWrap: true),
+        children: [content],
+      ),
+    );
+  }
+
+  Widget feedbackCard({
+    required String category,
+    required TextEditingController message,
+    required IconData icon,
+    required String title,
+  }) {
+    return expansionCard(
+      id: category,
+      title: title,
+      icon: icon,
+      content: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (category == 'bug') ...[
+            TextField(
+              controller: location,
+              minLines: 1,
+              maxLines: 3,
+              textCapitalization: TextCapitalization.sentences,
+              decoration: InputDecoration(
+                label: Text(t('whereBug'), softWrap: true),
+                alignLabelWithHint: true,
+                border: const OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
+          TextField(
+            controller: message,
+            minLines: 3,
+            maxLines: 6,
+            keyboardType: TextInputType.multiline,
+            textCapitalization: TextCapitalization.sentences,
+            decoration: InputDecoration(
+              label: Text(t(category == 'bug' ? 'describeBug' : 'describeIdea'),
+                  softWrap: true),
+              alignLabelWithHint: true,
+              border: const OutlineInputBorder(),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(t('emailPrivacy'), style: Theme.of(context).textTheme.bodySmall),
+          const SizedBox(height: 16),
+          ValueListenableBuilder<TextEditingValue>(
+            valueListenable: message,
+            builder: (context, value, child) => FilledButton(
+              onPressed: value.text.trim().isEmpty
+                  ? null
+                  : () => send(category, message),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.mail_outline),
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Text(t('sendEmail'), textAlign: TextAlign.center,
+                          softWrap: true),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Scaffold(
+      appBar: AppBar(title: Text(t('helpCenter'))),
+      body: SafeArea(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final padding = constraints.maxWidth < 360 ? 12.0 : 16.0;
+            return Align(
+              alignment: Alignment.topCenter,
+              child: SizedBox(
+                width: min(constraints.maxWidth, 760.0),
+                child: ListView(
+                  keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                  padding: EdgeInsets.all(padding),
+                  children: [
+                    feedbackCard(category: 'bug', message: description,
+                        icon: Icons.bug_report_outlined, title: 'reportBug'),
+                    feedbackCard(category: 'idea', message: suggestion,
+                        icon: Icons.lightbulb_outline, title: 'suggestFeature'),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(4, 20, 4, 6),
+                      child: Semantics(
+                        header: true,
+                        child: Text(t('faq'), style: theme.textTheme.titleLarge),
+                      ),
+                    ),
+                    for (final question in const [
+                      ['faqDataQ', 'faqDataA'],
+                      ['faqPaymentsQ', 'faqPaymentsA'],
+                      ['faqAiQ', 'faqAiA'],
+                      ['faqStatsQ', 'faqStatsA'],
+                    ])
+                      expansionCard(
+                        id: question[0],
+                        title: question[0],
+                        content: Align(
+                          alignment: AlignmentDirectional.centerStart,
+                          child: Text(t(question[1]), softWrap: true),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+    );
   }
 }
