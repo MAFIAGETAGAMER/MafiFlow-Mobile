@@ -105,7 +105,6 @@ class _MafiFlowAppState extends State<MafiFlowApp> {
 
   Map<String,dynamic> data=Map<String,dynamic>.from(defaults);
   bool ready=false; int tab=0;
-  String? startupError;
   String t(String key)=> helpLabels['${data['language']}']?[key] ?? featureLabels['${data['language']}']?[key] ?? improvedLabels['${data['language']}']?[key] ?? (additionalLabels[data['language']] ?? labels[data['language']] ?? labels['es']!)[key] ?? labels['en']![key] ?? key;
   String catName(String category)=>categoryTranslations[category]?['${data['language']}']??category;
   String transactionTitle(Map<String,dynamic> x) {
@@ -142,43 +141,7 @@ class _MafiFlowAppState extends State<MafiFlowApp> {
   List<Map<String,dynamic>> get payments=>records(data['monthly_payments']);
   bool get dark=>data['theme']=='dark';
   @override void initState(){super.initState();load();}
-  Future<void> load() async {
-    startupError = null;
-    try {
-      final p = await SharedPreferences.getInstance();
-      final raw = p.getString('mafiflow_data');
-      if (raw != null) {
-        try {
-          final obj = jsonDecode(raw);
-          if (obj is Map) {
-            data = {...defaults, ...Map<String, dynamic>.from(obj)};
-            if (!obj.containsKey('setup_completed') ||
-                (obj['setup_completed'] == true &&
-                    (records(obj['transactions']).isNotEmpty ||
-                     number(obj['monthly_income']) > 0 ||
-                     records(obj['monthly_payments']).isNotEmpty))) {
-              data['setup_completed'] = true;
-            }
-          }
-        } catch (_) {
-          // Ignore malformed saved JSON and continue with safe defaults.
-        }
-      }
-      if (data['setup_completed'] == true) {
-        // A scheduled-payment calculation must never leave the app on its
-        // permanent startup spinner if old saved data is unexpected.
-        try {
-          applyMonthly();
-          applySavingsMonthly();
-        } catch (_) {}
-      }
-    } catch (e) {
-      // Do not remain stuck on the loading indicator if storage fails.
-      startupError = e.runtimeType.toString();
-    } finally {
-      if (mounted) setState(() => ready = true);
-    }
-  }
+  Future<void> load() async {final p=await SharedPreferences.getInstance(); final raw=p.getString('mafiflow_data'); if(raw!=null){try{final obj=jsonDecode(raw); if(obj is Map){data={...defaults,...Map<String,dynamic>.from(obj)}; if(!obj.containsKey('setup_completed') || (obj['setup_completed']==true && (records(obj['transactions']).isNotEmpty || number(obj['monthly_income'])>0 || records(obj['monthly_payments']).isNotEmpty))) data['setup_completed']=true;}}catch(_){}} if(data['setup_completed']==true){applyMonthly();applySavingsMonthly();} if(mounted)setState(()=>ready=true);}
   Future<void> persistWithoutRebuild() async {final p=await SharedPreferences.getInstance(); await p.setString('mafiflow_data',jsonEncode(data));}
   void refreshAfterDialog() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -356,167 +319,7 @@ class _MafiFlowAppState extends State<MafiFlowApp> {
   void notice(String text){messengerKey.currentState?.showSnackBar(SnackBar(content:Text(text)));}
   Widget card(Widget child)=>Card(margin:const EdgeInsets.symmetric(vertical:7),child:Padding(padding:const EdgeInsets.all(16),child:child));
   Widget heading(String text)=>Padding(padding:const EdgeInsets.only(top:12,bottom:8),child:Text(text,style:TextStyle(fontSize:22,fontWeight:FontWeight.bold,color:dark?Colors.white:Colors.black87)));
-  @override
-  Widget build(BuildContext context) {
-    final lang = data['language']?.toString() ?? 'es';
-    activeCurrency = data['currency']?.toString() ?? 'USD';
-
-    return MaterialApp(
-      navigatorKey: navKey,
-      scaffoldMessengerKey: messengerKey,
-      debugShowCheckedModeBanner: false,
-      title: 'MafiFlow',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: green),
-        useMaterial3: true,
-      ),
-      darkTheme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: green,
-          brightness: Brightness.dark,
-        ),
-        useMaterial3: true,
-      ),
-      themeMode: dark ? ThemeMode.dark : ThemeMode.light,
-      home: !ready
-          ? const Scaffold(
-              body: Center(child: CircularProgressIndicator()),
-            )
-          : startupError != null
-              ? Scaffold(
-                  body: SafeArea(
-                    child: Center(
-                      child: Padding(
-                        padding: const EdgeInsets.all(24),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(Icons.error_outline, size: 48),
-                            const SizedBox(height: 12),
-                            const Text(
-                              'MafiFlow no pudo acceder al almacenamiento del dispositivo.',
-                              textAlign: TextAlign.center,
-                            ),
-                            const SizedBox(height: 8),
-                            const Text(
-                              'Tus datos no se han reemplazado. Comprueba el dispositivo e inténtalo de nuevo.',
-                              textAlign: TextAlign.center,
-                            ),
-                            const SizedBox(height: 16),
-                            FilledButton.icon(
-                              onPressed: () {
-                                setState(() => ready = false);
-                                load();
-                              },
-                              icon: const Icon(Icons.refresh),
-                              label: const Text('Reintentar'),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                )
-              : data['setup_completed'] != true
-                  ? WelcomeWizard(
-                      onComplete: (v) async {
-                        data.addAll(v);
-                        data['setup_completed'] = true;
-                        applyMonthly();
-                        applySavingsMonthly();
-                        await save();
-                      },
-                    )
-                  : Builder(
-                      builder: (shellContext) => Scaffold(
-                        appBar: AppBar(
-                          title: Row(
-                            children: [
-                              Image.asset('assets/logo.png', height: 34),
-                              const SizedBox(width: 10),
-                              const Text('MafiFlow'),
-                            ],
-                          ),
-                          actions: [
-                            IconButton(
-                              tooltip: t('helpCenter'),
-                              icon: const Icon(Icons.help_outline),
-                              onPressed: () => Navigator.of(dialogContext).push(
-                                MaterialPageRoute(
-                                  builder: (_) => MafiHelpCenter(language: lang),
-                                ),
-                              ),
-                            ),
-                            IconButton(
-                              tooltip: t('calculator'),
-                              icon: const Icon(Icons.calculate_outlined),
-                              onPressed: () => showDialog(
-                                context: dialogContext,
-                                builder: (_) => CalculatorDialog(
-                                  title: t('calculator'),
-                                ),
-                              ),
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.settings),
-                              onPressed: () => setState(() => tab = 5),
-                            ),
-                          ],
-                        ),
-                        body: SafeArea(
-                          child: LayoutBuilder(
-                            builder: (ctx, box) {
-                              return IndexedStack(
-                                index: tab,
-                                children: [
-                                  home(),
-                                  transactions(),
-                                  monthly(),
-                                  stats(),
-                                  Advisor(data: data, lang: lang, onSave: save),
-                                  settings(),
-                                ],
-                              );
-                            },
-                          ),
-                        ),
-                        bottomNavigationBar: NavigationBar(
-                          selectedIndex: tab,
-                          onDestinationSelected: (v) => setState(() => tab = v),
-                          labelBehavior:
-                              NavigationDestinationLabelBehavior.onlyShowSelected,
-                          destinations: [
-                            NavigationDestination(
-                              icon: const Icon(Icons.home_outlined),
-                              label: t('home'),
-                            ),
-                            NavigationDestination(
-                              icon: const Icon(Icons.receipt_long),
-                              label: t('moves'),
-                            ),
-                            NavigationDestination(
-                              icon: const Icon(Icons.event_repeat),
-                              label: t('monthly'),
-                            ),
-                            NavigationDestination(
-                              icon: const Icon(Icons.pie_chart_outline),
-                              label: t('stats'),
-                            ),
-                            NavigationDestination(
-                              icon: const Icon(Icons.smart_toy_outlined),
-                              label: t('ai'),
-                            ),
-                            NavigationDestination(
-                              icon: const Icon(Icons.settings_outlined),
-                              label: t('settings'),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-    );
-  }
-
+  @override Widget build(BuildContext context){final lang='${data['language']}';activeCurrency='${data['currency']??'USD'}';return MaterialApp(navigatorKey:navKey,scaffoldMessengerKey:messengerKey,debugShowCheckedModeBanner:false,title:'MafiFlow',theme:ThemeData(colorScheme:ColorScheme.fromSeed(seedColor:green),useMaterial3:true),darkTheme:ThemeData(colorScheme:ColorScheme.fromSeed(seedColor:green,brightness:Brightness.dark),useMaterial3:true),themeMode:dark?ThemeMode.dark:ThemeMode.light,home:!ready?const Scaffold(body:Center(child:CircularProgressIndicator())):data['setup_completed']!=true?WelcomeWizard(onComplete:(v) async {data.addAll(v);data['setup_completed']=true;applyMonthly();applySavingsMonthly();await save();}):Builder(builder:(shellContext)=>Scaffold(appBar:AppBar(title:Row(children:[Image.asset('assets/logo.png',height:34),const SizedBox(width:10),const Text('MafiFlow')]),actions:[IconButton(tooltip:t('helpCenter'),icon:const Icon(Icons.help_outline),onPressed:()=>Navigator.of(dialogContext).push(MaterialPageRoute(builder:(_)=>MafiHelpCenter(language:'${data['language']}')))),IconButton(tooltip:t('calculator'),icon:const Icon(Icons.calculate_outlined),onPressed:()=>showDialog(context:dialogContext,builder:(_)=>CalculatorDialog(title:t('calculator')))),IconButton(icon:const Icon(Icons.settings),onPressed:()=>setState(()=>tab=5))]),body:SafeArea(child:LayoutBuilder(builder:(ctx,box){final content=IndexedStack(index:tab,children:[home(),transactions(),monthly(),stats(),Advisor(data:data,lang:lang,onSave:save),settings()]);return content;})),bottomNavigationBar:NavigationBar(selectedIndex:tab,onDestinationSelected:(v)=>setState(()=>tab=v),labelBehavior:NavigationDestinationLabelBehavior.onlyShowSelected,destinations:[NavigationDestination(icon:const Icon(Icons.home_outlined),label:t('home')),NavigationDestination(icon:const Icon(Icons.receipt_long),label:t('moves')),NavigationDestination(icon:const Icon(Icons.event_repeat),label:t('monthly')),NavigationDestination(icon:const Icon(Icons.pie_chart_outline),label:t('stats')),NavigationDestination(icon:const Icon(Icons.smart_toy_outlined),label:t('ai')),NavigationDestination(icon:const Icon(Icons.settings_outlined),label:t('settings'))]))));}
   Widget scroll(List<Widget> widgets)=>ListView(padding:const EdgeInsets.all(16),children:widgets);
   Widget stat(String label,double value,IconData icon,Color color)=>card(Row(children:[Icon(icon,color:color),const SizedBox(width:14),Expanded(child:Text(label)),Text(money(value),style:TextStyle(fontWeight:FontWeight.bold,fontSize:19,color:color))]));
   Widget home(){
@@ -1409,9 +1212,9 @@ class _MafiHelpCenterState extends State<MafiHelpCenter> {
     final theme=Theme.of(context);
     return Scaffold(appBar:AppBar(title:Text(t('helpCenter'))),body:ListView(padding:const EdgeInsets.all(16),children:[
       Card(child:Column(children:[
-        ListTile(leading:const Icon(Icons.bug_report_outlined),title:Text(t('reportBug')),trailing:Icon(category=='bug'?Icons.keyboard_arrow_down:Icons.chevron_right),onTap:()=>setState((){if(category=='bug'){category=null;}else{category='bug';description.clear();location.clear();}})),
+        ListTile(leading:const Icon(Icons.bug_report_outlined),title:Text(t('reportBug')),trailing:const Icon(Icons.chevron_right),onTap:()=>setState((){category='bug';description.clear();location.clear();})),
         const Divider(height:1),
-        ListTile(leading:const Icon(Icons.lightbulb_outline),title:Text(t('suggestFeature')),trailing:Icon(category=='idea'?Icons.keyboard_arrow_down:Icons.chevron_right),onTap:()=>setState((){if(category=='idea'){category=null;}else{category='idea';description.clear();location.clear();}})),
+        ListTile(leading:const Icon(Icons.lightbulb_outline),title:Text(t('suggestFeature')),trailing:const Icon(Icons.chevron_right),onTap:()=>setState((){category='idea';description.clear();location.clear();})),
       ])),
       if(category!=null)Card(child:Padding(padding:const EdgeInsets.all(16),child:Column(crossAxisAlignment:CrossAxisAlignment.stretch,children:[
         Text(category=='bug'?t('reportBug'):t('suggestFeature'),style:theme.textTheme.titleMedium),
