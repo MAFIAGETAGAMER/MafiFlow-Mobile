@@ -1208,14 +1208,15 @@ class _MafiHelpCenterState extends State<MafiHelpCenter> {
       if(mounted)ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text(t('emailFailed'))));
     }
   }
-  Widget feedbackSection({required String category, required IconData icon,
-      required String title, required TextEditingController message}) {
+  Widget feedbackSection(String category, TextEditingController message,
+      IconData icon, String title) {
     return Card(child:ExpansionTile(
-      key:PageStorageKey<String>('help_$category'),
+      key:PageStorageKey<String>('feedback_$category'),
       maintainState:true,
       leading:Icon(icon),
       title:Text(t(title)),
-      children:[Padding(padding:const EdgeInsets.fromLTRB(16,0,16,16),
+      children:[Padding(
+        padding:const EdgeInsets.fromLTRB(16,0,16,16),
         child:Column(crossAxisAlignment:CrossAxisAlignment.stretch,children:[
           if(category=='bug') ...[
             TextField(controller:location,decoration:InputDecoration(
@@ -1223,8 +1224,7 @@ class _MafiHelpCenterState extends State<MafiHelpCenter> {
             const SizedBox(height:12),
           ],
           TextField(controller:message,minLines:3,maxLines:6,
-            onChanged:(_)=>setState((){}),
-            decoration:InputDecoration(
+            onChanged:(_)=>setState((){}),decoration:InputDecoration(
               labelText:t(category=='bug'?'describeBug':'describeIdea'),
               border:const OutlineInputBorder())),
           const SizedBox(height:12),
@@ -1233,17 +1233,15 @@ class _MafiHelpCenterState extends State<MafiHelpCenter> {
           FilledButton.icon(
             onPressed:message.text.trim().isEmpty?null:()=>send(category,message),
             icon:const Icon(Icons.mail_outline),label:Text(t('sendEmail'))),
-        ])),
-      ],
+        ]),
+      )],
     ));
   }
   @override Widget build(BuildContext context){
     final theme=Theme.of(context);
     return Scaffold(appBar:AppBar(title:Text(t('helpCenter'))),body:ListView(padding:const EdgeInsets.all(16),children:[
-      feedbackSection(category:'bug',icon:Icons.bug_report_outlined,
-        title:'reportBug',message:description),
-      feedbackSection(category:'idea',icon:Icons.lightbulb_outline,
-        title:'suggestFeature',message:suggestion),
+      feedbackSection('bug',description,Icons.bug_report_outlined,'reportBug'),
+      feedbackSection('idea',suggestion,Icons.lightbulb_outline,'suggestFeature'),
       const SizedBox(height:12),Text(t('faq'),style:theme.textTheme.titleLarge),
       for(final q in [['faqDataQ','faqDataA'],['faqPaymentsQ','faqPaymentsA'],['faqAiQ','faqAiA'],['faqStatsQ','faqStatsA']])
         Card(child:ExpansionTile(title:Text(t(q[0])),children:[Padding(padding:const EdgeInsets.fromLTRB(16,0,16,16),child:Align(alignment:Alignment.centerLeft,child:Text(t(q[1]))))])),
