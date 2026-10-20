@@ -9,7 +9,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 void main() { WidgetsFlutterBinding.ensureInitialized(); runApp(const MafiFlowApp()); }
-const green = Color(0xFF168657);
+const green = Color(0xFF8E24AA);
 const expenseRed = Color(0xFFE76F6F);
 const defaults = <String, dynamic>{
   'monthly_income': 0.0, 'rent': 0.0, 'savings_goal': 0.0,
@@ -1212,9 +1212,9 @@ class _MafiHelpCenterState extends State<MafiHelpCenter> {
     final theme=Theme.of(context);
     return Scaffold(appBar:AppBar(title:Text(t('helpCenter'))),body:ListView(padding:const EdgeInsets.all(16),children:[
       Card(child:Column(children:[
-        ListTile(leading:const Icon(Icons.bug_report_outlined),title:Text(t('reportBug')),trailing:Icon(category=='bug'?Icons.expand_more:Icons.chevron_right),onTap:()=>setState((){category=category=='bug'?null:'bug';description.clear();location.clear();})),
+        ListTile(leading:const Icon(Icons.bug_report_outlined),title:Text(t('reportBug')),trailing:const Icon(Icons.chevron_right),onTap:()=>setState((){category='bug';description.clear();location.clear();})),
         const Divider(height:1),
-        ListTile(leading:const Icon(Icons.lightbulb_outline),title:Text(t('suggestFeature')),trailing:Icon(category=='idea'?Icons.expand_more:Icons.chevron_right),onTap:()=>setState((){category=category=='idea'?null:'idea';description.clear();location.clear();})),
+        ListTile(leading:const Icon(Icons.lightbulb_outline),title:Text(t('suggestFeature')),trailing:const Icon(Icons.chevron_right),onTap:()=>setState((){category='idea';description.clear();location.clear();})),
       ])),
       if(category!=null)Card(child:Padding(padding:const EdgeInsets.all(16),child:Column(crossAxisAlignment:CrossAxisAlignment.stretch,children:[
         Text(category=='bug'?t('reportBug'):t('suggestFeature'),style:theme.textTheme.titleMedium),
