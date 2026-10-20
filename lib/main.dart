@@ -9,7 +9,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 void main() { WidgetsFlutterBinding.ensureInitialized(); runApp(const MafiFlowApp()); }
-const green = Color(0xFF8E24AA);
+const green = Color(0xFF168657);
 const expenseRed = Color(0xFFE76F6F);
 const defaults = <String, dynamic>{
   'monthly_income': 0.0, 'rent': 0.0, 'savings_goal': 0.0,
