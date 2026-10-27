@@ -233,7 +233,7 @@ jobs:
         run: flutter analyze --no-fatal-infos --no-fatal-warnings
 
       - name: Build signed release APK
-        run: flutter build apk --release --build-name=1.0.1 --build-number=17
+        run: flutter build apk --release --build-name=1.0.1 --build-number=18
 
       - name: Verify APK permissions and signature
         run: |
@@ -269,7 +269,7 @@ jobs:
           if-no-files-found: error
 
       - name: Build signed Google Play AAB
-        run: flutter build appbundle --release --build-name=1.0.1 --build-number=17
+        run: flutter build appbundle --release --build-name=1.0.1 --build-number=18
 
       - name: Verify AAB signature
         run: |
