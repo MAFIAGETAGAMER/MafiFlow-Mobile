@@ -1,3 +1,9 @@
+# MafiFlow Android — Multi-profile beta 1.0.10
+
+This source ZIP includes versioned multi-profile migration, period-statistics repairs, full-balance context for AI, an offline financial overview, translated provider errors and GitHub workflow tests. See [RELEASE_NOTES_1.0.10.md](RELEASE_NOTES_1.0.10.md) for migration, privacy and required device tests. **This is not a compiled or validated APK/AAB.**
+
+---
+
 # MafiFlow Mobile 1.0 — Beta 2 💚
 
 Flutter application for Android and iOS. Development beta; test before publishing.
