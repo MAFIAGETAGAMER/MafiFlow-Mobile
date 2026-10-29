@@ -1,6 +1,6 @@
-# MafiFlow Android 1.0.13+24
+# MafiFlow Android 1.0.14+25
 
-Consulta VALIDACION_1.0.13.md para compilación, artefactos y límites de validación de esta entrega. Las notas siguientes son históricas.
+Consulta VALIDACION_1.0.14.md para compilación, artefactos y límites de validación de esta entrega. Las notas siguientes son históricas.
 
 # MafiFlow Android — Savings & Profiles beta 1.0.11
 

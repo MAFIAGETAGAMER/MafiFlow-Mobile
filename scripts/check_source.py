@@ -4,10 +4,10 @@ import re
 
 root = Path(__file__).resolve().parents[1]
 pubspec = (root / 'pubspec.yaml').read_text(encoding='utf-8')
-assert re.search(r'^version: 1\.0\.13\+24$', pubspec, re.M)
+assert re.search(r'^version: 1\.0\.14\+25$', pubspec, re.M)
 main = (root / 'lib/main.dart').read_text(encoding='utf-8')
-for marker in ["onPressed:showNewSavingsGoal", "onPressed:showCorrectSavings",
-               "onPressed:showCorrectAvailable", "onTap:widget.onCorrectAvailable",
+for marker in ["onPressed:showNewSavingsGoal", "onTap:widget.onCorrectSavings",
+               "onTap:widget.onCorrectAvailable",
                "correctAvailableBalance(data,n)",
                "onTap:widget.onEraseProfile", "controller:initialSavings",
                "performSavingsAction(data,", "recentAdvisorMessages(history)",

@@ -549,18 +549,7 @@ class _MafiFlowAppState extends State<MafiFlowApp> with WidgetsBindingObserver {
     final progress=goal>0?(goalSaved/goal).clamp(0.0,1.0).toDouble():0.0;
     return scroll([
       heading(t('home')),
-      card(Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
-        Row(children:[
-          Icon(Icons.account_balance_wallet,color:v.balance<0?expenseRed:green),
-          const SizedBox(width:14),
-          Expanded(child:Text(t('balance'))),
-          Text(money(v.balance),style:TextStyle(fontWeight:FontWeight.bold,fontSize:19,
-            color:v.balance<0?expenseRed:green)),
-        ]),
-        const SizedBox(height:8),
-        TextButton.icon(onPressed:showCorrectAvailable,icon:const Icon(Icons.edit_outlined),
-          label:Text(t('correctAvailable'))),
-      ])),
+      stat(t('balance'),v.balance,Icons.account_balance_wallet,v.balance<0?expenseRed:green),
       stat(t('income'),v.income,Icons.trending_up,green),
       stat(t('expenses'),v.spent,Icons.trending_down,expenseRed),
       card(Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
@@ -581,12 +570,6 @@ class _MafiFlowAppState extends State<MafiFlowApp> with WidgetsBindingObserver {
           Text(t('goalReachedHint')),
           OutlinedButton.icon(onPressed:showNewSavingsGoal,icon:const Icon(Icons.flag_outlined),label:Text(t('newSavingsGoal'))),
         ],
-        const SizedBox(height:8),
-        Wrap(spacing:8,runSpacing:4,children:[
-          TextButton.icon(onPressed:()=>savingsDialog(SavingsAction.deposit),icon:const Icon(Icons.add_circle_outline),label:Text(t('saveFromBalance'))),
-          TextButton.icon(onPressed:()=>savingsDialog(SavingsAction.withdraw),icon:const Icon(Icons.remove_circle_outline),label:Text(t('withdrawSavings'))),
-          TextButton.icon(onPressed:showCorrectSavings,icon:const Icon(Icons.edit_outlined),label:Text(t('correctSavings'))),
-        ]),
       ])),
       card(Row(children:[
         const Icon(Icons.calendar_month_outlined,color:Colors.blue),
@@ -1239,15 +1222,16 @@ class _SettingsPanelState extends State<SettingsPanel> {
     return widget.scrollBuilder([
       widget.headingBuilder(t('settings')),
       widget.cardBuilder(Column(children:[
+        ListTile(leading:const Icon(Icons.account_balance_wallet_outlined),title:Text(t('correctAvailable')),onTap:widget.onCorrectAvailable),
+        ListTile(leading:const Icon(Icons.savings_outlined),title:Text(t('correctSavings')),onTap:widget.onCorrectSavings),
+        ListTile(leading:const Icon(Icons.flag_outlined),title:Text(t('newSavingsGoal')),subtitle:Text(t('newSavingsGoalHint')),onTap:()async{await widget.onNewGoal();if(mounted){goal.text='${widget.data['savings_goal']??0}';}}),
+        const Divider(),
         TextField(controller:income,keyboardType:const TextInputType.numberWithOptions(decimal:true),decoration:InputDecoration(labelText:t('payAmount'))),
         DropdownButtonFormField<String>(isExpanded:true,key:ValueKey('frequency-$incomeFrequency'),initialValue:['daily','weekly','biweekly','monthly','two_months','three_months'].contains(incomeFrequency)?incomeFrequency:'monthly',decoration:InputDecoration(labelText:t('payFrequency')),items:[DropdownMenuItem(value:'daily',child:Text(t('freqDaily'))),DropdownMenuItem(value:'weekly',child:Text(t('freqWeekly'))),DropdownMenuItem(value:'biweekly',child:Text(t('freqBiweekly'))),DropdownMenuItem(value:'monthly',child:Text(t('freqMonthly'))),DropdownMenuItem(value:'two_months',child:Text(t('freqTwoMonths'))),DropdownMenuItem(value:'three_months',child:Text(t('freqThreeMonths')))],onChanged:(v)=>setState((){final next=v??'monthly';if(next!=incomeFrequency){incomeFrequency=next;incomePayday=DateTime.now();}})),
         if(incomeFrequency!='daily')ListTile(contentPadding:EdgeInsets.zero,title:Text(t('firstPaymentDate')),subtitle:Text('${incomePayday.year}-${incomePayday.month.toString().padLeft(2,'0')}-${incomePayday.day.toString().padLeft(2,'0')}'),trailing:const Icon(Icons.calendar_today),onTap:()async{final d=await showDatePicker(context:context,initialDate:incomePayday,firstDate:DateTime(2020),lastDate:DateTime(2100));if(d!=null)setState(()=>incomePayday=d);}),
         TextField(controller:goal,keyboardType:const TextInputType.numberWithOptions(decimal:true),decoration:InputDecoration(labelText:t('goal'))),
         TextField(controller:monthlySavings,keyboardType:const TextInputType.numberWithOptions(decimal:true),decoration:InputDecoration(labelText:t('monthlySavings'))),
         Text(t('monthlySavingsHint')),
-        ListTile(leading:const Icon(Icons.account_balance_wallet_outlined),title:Text(t('correctAvailable')),onTap:widget.onCorrectAvailable),
-        ListTile(leading:const Icon(Icons.savings_outlined),title:Text(t('correctSavings')),onTap:widget.onCorrectSavings),
-        ListTile(leading:const Icon(Icons.flag_outlined),title:Text(t('newSavingsGoal')),subtitle:Text(t('newSavingsGoalHint')),onTap:()async{await widget.onNewGoal();if(mounted){goal.text='${widget.data['savings_goal']??0}';}}),
         DropdownButtonFormField<String>(key:ValueKey('currency-$currency'),initialValue:currency,decoration:InputDecoration(labelText:t('currency')),items:['USD','CAD','EUR','GBP','BDT','CUP'].map((v)=>DropdownMenuItem(value:v,child:Text(v))).toList(),onChanged:(v)=>setState(()=>currency=v??'USD')),
         Text(t('currencyWarning'),style:Theme.of(context).textTheme.bodySmall),
         DropdownButtonFormField<String>(key:ValueKey('provider-$provider'),initialValue:['OpenAI','NVIDIA','Custom','Offline'].contains(provider)?provider:'OpenAI',decoration:InputDecoration(labelText:t('provider')),items:['OpenAI','NVIDIA','Custom','Offline'].map((e)=>DropdownMenuItem(value:e,child:Text(e=='Offline'?t('localSummary'):e))).toList(),onChanged:(v)=>setState(()=>provider=v??'OpenAI')),
