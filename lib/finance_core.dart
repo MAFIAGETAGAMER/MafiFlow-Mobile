@@ -19,6 +19,17 @@ DateTime? financeDate(dynamic raw) {
 bool _isIncome(dynamic type) => type == 'Ingreso mensual' || type == 'Ingreso extra';
 bool _isExpense(dynamic type) => type == 'Gasto' || type == 'Pago mensual';
 
+/// Correct spendable money by adjusting the existing base-balance mechanism.
+/// Reserved savings and all recorded income/expense transactions stay intact.
+/// Like editing the starting balance, this also changes historical balances.
+void correctAvailableBalance(Map<String, dynamic> data, double corrected) {
+  if (!corrected.isFinite) throw ArgumentError.value(corrected, 'corrected');
+  final snapshot = financialSnapshot(data);
+  final base = snapshot.openingBalance + (corrected - snapshot.available);
+  if (!base.isFinite) throw ArgumentError.value(corrected, 'corrected');
+  data['opening_balance'] = base;
+}
+
 class FinancialSnapshot {
   const FinancialSnapshot({
     required this.openingBalance, required this.totalIncome,

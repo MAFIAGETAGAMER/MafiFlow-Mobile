@@ -41,7 +41,8 @@ const savingsLabels = <String, Map<String, String>>{
   'es': {'goalReached':'¡Objetivo logrado!', 'goalReachedHint':'Tus ahorros siguen reservados. Puedes empezar una nueva meta sin perderlos.',
     'newSavingsGoal':'Nueva meta', 'newSavingsGoalHint':'El progreso comenzará en cero y conservarás el ahorro anterior.',
     'saveFromBalance':'Agregar al ahorro','withdrawSavings':'Retirar del ahorro','spendSavings':'Gastar del ahorro',
-    'correctSavings':'Corregir ahorro','correctSavingsHint':'Corrige el total reservado. Se guardará un ajuste sin inventar ingresos ni gastos.',
+    'correctSavings':'Corregir ahorro',
+    'correctAvailable':'Corregir saldo disponible','availableTotal':'Saldo disponible actual','correctAvailableHint':'Indica cuánto dinero tienes disponible ahora, sin incluir los ahorros. Se ajustará el saldo base sin crear ingresos ni gastos ni cambiar tus ahorros.','correctSavingsHint':'Corrige el total reservado. Se guardará un ajuste sin inventar ingresos ni gastos.',
     'savingsInsufficient':'No tienes suficiente ahorro reservado.','availableInsufficient':'No tienes suficiente saldo disponible.',
     'savingsMovement':'Movimiento de ahorro','savedTotal':'Ahorro reservado actual','initialSavings':'¿Cuánto tienes ya ahorrado?',
     'initialSavingsHint':'Indica el dinero total que posees, incluyendo lo ya ahorrado. El ahorro se separará de ese total, sin contarlo como un nuevo ingreso.',
@@ -53,7 +54,8 @@ const savingsLabels = <String, Map<String, String>>{
   'en': {'goalReached':'Goal achieved!','goalReachedHint':'Your savings remain reserved. Start a new goal without losing them.',
     'newSavingsGoal':'New goal','newSavingsGoalHint':'Progress starts from zero; previously saved money stays reserved.',
     'saveFromBalance':'Add to savings','withdrawSavings':'Withdraw from savings','spendSavings':'Spend from savings',
-    'correctSavings':'Correct savings','correctSavingsHint':'Correct the reserved total. An adjustment is recorded without inventing income or expenses.',
+    'correctSavings':'Correct savings',
+    'correctAvailable':'Correct available balance','availableTotal':'Current available balance','correctAvailableHint':'Enter the money available now, excluding savings. This adjusts the base balance without creating income or expenses or changing savings.','correctSavingsHint':'Correct the reserved total. An adjustment is recorded without inventing income or expenses.',
     'savingsInsufficient':'Not enough savings reserved.','availableInsufficient':'Not enough available balance.',
     'savingsMovement':'Savings movement','savedTotal':'Current reserved savings','initialSavings':'How much have you already saved?',
     'initialSavingsHint':'Enter all money you own, including existing savings. Savings will be reserved from that total, not counted as new income.',
@@ -65,7 +67,8 @@ const savingsLabels = <String, Map<String, String>>{
   'fr': {'goalReached':'Objectif atteint !','goalReachedHint':'Votre épargne reste réservée. Vous pouvez commencer un nouvel objectif.',
     'newSavingsGoal':'Nouvel objectif','newSavingsGoalHint':'La progression repart de zéro et l’épargne existante est conservée.',
     'saveFromBalance':'Ajouter à l’épargne','withdrawSavings':'Retirer de l’épargne','spendSavings':'Payer avec l’épargne',
-    'correctSavings':'Corriger l’épargne','correctSavingsHint':'Corrigez le total réservé. Un ajustement sera enregistré sans créer de faux revenu.',
+    'correctSavings':'Corriger l’épargne',
+    'correctAvailable':'Corriger le solde disponible','availableTotal':'Solde disponible actuel','correctAvailableHint':'Indiquez votre argent disponible, hors épargne. Le solde de base sera ajusté sans créer de revenu ni de dépense et sans modifier votre épargne.','correctSavingsHint':'Corrigez le total réservé. Un ajustement sera enregistré sans créer de faux revenu.',
     'savingsInsufficient':'Épargne insuffisante.','availableInsufficient':'Solde disponible insuffisant.',
     'savingsMovement':'Mouvement d’épargne','savedTotal':'Épargne réservée actuelle','initialSavings':'Combien avez-vous déjà épargné ?',
     'initialSavingsHint':'Saisissez votre argent total, épargne comprise. L’épargne sera réservée sans être comptée comme revenu.',
@@ -77,7 +80,8 @@ const savingsLabels = <String, Map<String, String>>{
   'de': {'goalReached':'Sparziel erreicht!','goalReachedHint':'Dein Erspartes bleibt reserviert. Du kannst ein neues Ziel beginnen.',
     'newSavingsGoal':'Neues Sparziel','newSavingsGoalHint':'Der Fortschritt beginnt bei null; das vorhandene Sparguthaben bleibt erhalten.',
     'saveFromBalance':'Zum Sparen hinzufügen','withdrawSavings':'Aus Sparguthaben entnehmen','spendSavings':'Aus Ersparnissen bezahlen',
-    'correctSavings':'Sparbetrag korrigieren','correctSavingsHint':'Den reservierten Betrag korrigieren, ohne Einnahmen oder Ausgaben zu erfinden.',
+    'correctSavings':'Sparbetrag korrigieren',
+    'correctAvailable':'Verfügbares Guthaben korrigieren','availableTotal':'Aktuell verfügbares Guthaben','correctAvailableHint':'Gib dein aktuell verfügbares Geld ohne Ersparnisse ein. Der Basissaldo wird angepasst, ohne Einnahmen oder Ausgaben zu erstellen oder Ersparnisse zu ändern.','correctSavingsHint':'Den reservierten Betrag korrigieren, ohne Einnahmen oder Ausgaben zu erfinden.',
     'savingsInsufficient':'Nicht genügend Sparguthaben.','availableInsufficient':'Nicht genügend verfügbares Guthaben.',
     'savingsMovement':'Sparbewegung','savedTotal':'Aktueller Sparbetrag','initialSavings':'Wie viel hast du bereits gespart?',
     'initialSavingsHint':'Gib dein gesamtes Geld einschließlich Ersparnissen ein. Ersparnisse werden davon reserviert, nicht als Einnahme gezählt.',
@@ -89,7 +93,8 @@ const savingsLabels = <String, Map<String, String>>{
   'bn': {'goalReached':'সঞ্চয়ের লক্ষ্য পূরণ হয়েছে!','goalReachedHint':'আগের সঞ্চয় সংরক্ষিত থাকবে। নতুন লক্ষ্য শুরু করতে পারেন।',
     'newSavingsGoal':'নতুন লক্ষ্য','newSavingsGoalHint':'অগ্রগতি শূন্য থেকে শুরু হবে, আগের সঞ্চয় থাকবে।',
     'saveFromBalance':'সঞ্চয়ে যোগ করুন','withdrawSavings':'সঞ্চয় থেকে তুলুন','spendSavings':'সঞ্চয় থেকে খরচ',
-    'correctSavings':'সঞ্চয় সংশোধন','correctSavingsHint':'আয় বা ব্যয় না বানিয়ে সংরক্ষিত মোট অর্থ সংশোধন করুন।',
+    'correctSavings':'সঞ্চয় সংশোধন',
+    'correctAvailable':'উপলব্ধ ব্যালেন্স সংশোধন','availableTotal':'বর্তমান উপলব্ধ ব্যালেন্স','correctAvailableHint':'সঞ্চয় বাদ দিয়ে এখন ব্যবহারযোগ্য অর্থ লিখুন। আয় বা ব্যয় তৈরি না করে এবং সঞ্চয় না বদলে মূল ব্যালেন্স সমন্বয় হবে।','correctSavingsHint':'আয় বা ব্যয় না বানিয়ে সংরক্ষিত মোট অর্থ সংশোধন করুন।',
     'savingsInsufficient':'যথেষ্ট সঞ্চয় নেই।','availableInsufficient':'যথেষ্ট উপলব্ধ অর্থ নেই।',
     'savingsMovement':'সঞ্চয় লেনদেন','savedTotal':'বর্তমান সঞ্চয়','initialSavings':'আগে কত টাকা সঞ্চয় করেছেন?',
     'initialSavingsHint':'সঞ্চয়সহ আপনার মোট অর্থ লিখুন। সঞ্চয়কে আয় না ধরে মোট অর্থ থেকে আলাদা রাখা হবে।',
@@ -544,7 +549,18 @@ class _MafiFlowAppState extends State<MafiFlowApp> with WidgetsBindingObserver {
     final progress=goal>0?(goalSaved/goal).clamp(0.0,1.0).toDouble():0.0;
     return scroll([
       heading(t('home')),
-      stat(t('balance'),v.balance,Icons.account_balance_wallet,v.balance<0?expenseRed:green),
+      card(Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
+        Row(children:[
+          Icon(Icons.account_balance_wallet,color:v.balance<0?expenseRed:green),
+          const SizedBox(width:14),
+          Expanded(child:Text(t('balance'))),
+          Text(money(v.balance),style:TextStyle(fontWeight:FontWeight.bold,fontSize:19,
+            color:v.balance<0?expenseRed:green)),
+        ]),
+        const SizedBox(height:8),
+        TextButton.icon(onPressed:showCorrectAvailable,icon:const Icon(Icons.edit_outlined),
+          label:Text(t('correctAvailable'))),
+      ])),
       stat(t('income'),v.income,Icons.trending_up,green),
       stat(t('expenses'),v.spent,Icons.trending_down,expenseRed),
       card(Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
@@ -612,6 +628,29 @@ class _MafiFlowAppState extends State<MafiFlowApp> with WidgetsBindingObserver {
     ));
     WidgetsBinding.instance.addPostFrameCallback((_){input.dispose();note.dispose();});
     if(accepted)await save();
+  }
+
+  Future<void> showCorrectAvailable() async {
+    final input=TextEditingController(text:financialSnapshot(data).available.toStringAsFixed(2));
+    var changed=false;
+    await showDialog<void>(context:dialogContext,builder:(c)=>AlertDialog(
+      title:Text(t('correctAvailable')),
+      content:SingleChildScrollView(child:Column(mainAxisSize:MainAxisSize.min,children:[
+        Text(t('correctAvailableHint')),
+        TextField(controller:input,
+          keyboardType:const TextInputType.numberWithOptions(decimal:true,signed:true),
+          decoration:InputDecoration(labelText:t('availableTotal'))),
+      ])),
+      actions:[TextButton(onPressed:()=>Navigator.pop(c),child:Text(t('cancel'))),
+        FilledButton(onPressed:(){
+          final n=double.tryParse(input.text.trim().replaceAll(',','.'));
+          if(n==null||!n.isFinite){notice(t('invalid'));return;}
+          try{correctAvailableBalance(data,n);changed=true;Navigator.pop(c);}
+          on ArgumentError {notice(t('invalid'));}
+        },child:Text(t('save')))],
+    ));
+    WidgetsBinding.instance.addPostFrameCallback((_){input.dispose();});
+    if(changed)await save();
   }
 
   Future<void> showCorrectSavings() async {
@@ -1096,7 +1135,7 @@ class _MafiFlowAppState extends State<MafiFlowApp> with WidgetsBindingObserver {
   Widget settings()=>SettingsPanel(
     key:ValueKey('settings-${archive.activeId}'), active:tab==5, data:data, t:t, scrollBuilder:scroll, cardBuilder:card, headingBuilder:heading,
     onManageCategories:manageCategories, onManageProfiles:manageProfiles, onImportBackup:importBackup,
-    onEraseProfile:eraseCurrentProfile,onCorrectSavings:showCorrectSavings,onNewGoal:showNewSavingsGoal,
+    onEraseProfile:eraseCurrentProfile,onCorrectAvailable:showCorrectAvailable,onCorrectSavings:showCorrectSavings,onNewGoal:showNewSavingsGoal,
     onExportBackup:() async {
       final copy=jsonDecode(archive.encode(omitSecrets:true));
       await Clipboard.setData(ClipboardData(text:const JsonEncoder.withIndent('  ').convert(copy)));
@@ -1122,7 +1161,7 @@ class SettingsPanel extends StatefulWidget {
     required this.scrollBuilder,required this.cardBuilder,required this.headingBuilder,
     required this.onManageCategories,required this.onManageProfiles,required this.onImportBackup,
     required this.onExportBackup,required this.onSave,required this.onInvalid,
-    required this.onEraseProfile,required this.onCorrectSavings,required this.onNewGoal});
+    required this.onEraseProfile,required this.onCorrectAvailable,required this.onCorrectSavings,required this.onNewGoal});
   final bool active;
   final Map<String,dynamic> data;
   final String Function(String) t;
@@ -1136,19 +1175,19 @@ class SettingsPanel extends StatefulWidget {
   final Future<void> Function(Map<String,dynamic>) onSave;
   final VoidCallback onInvalid;
   final Future<void> Function() onEraseProfile;
+  final Future<void> Function() onCorrectAvailable;
   final Future<void> Function() onCorrectSavings;
   final Future<void> Function() onNewGoal;
   @override State<SettingsPanel> createState()=>_SettingsPanelState();
 }
 class _SettingsPanelState extends State<SettingsPanel> {
-  late final TextEditingController income,goal,monthlySavings,opening,api,model,url;
+  late final TextEditingController income,goal,monthlySavings,api,model,url;
   DateTime incomePayday=DateTime.now();
   late String currency,incomeFrequency,provider,lang,theme;
   @override void initState(){
     super.initState();
     income=TextEditingController();
     goal=TextEditingController();
-    opening=TextEditingController();
     monthlySavings=TextEditingController();
     api=TextEditingController();
     model=TextEditingController();
@@ -1161,7 +1200,6 @@ class _SettingsPanelState extends State<SettingsPanel> {
     final d=widget.data;
     income.text='${d['monthly_income']??0}';
     goal.text='${d['savings_goal']??0}';
-    opening.text='${d['opening_balance']??0}';
     monthlySavings.text='${d['monthly_savings']??0}';
     api.text='${d['ai_api_key']??''}';
     model.text='${d['ai_model']??''}';
@@ -1181,15 +1219,15 @@ class _SettingsPanelState extends State<SettingsPanel> {
       restoreSavedSettings();
     }
   }
-  @override void dispose(){for(final c in [income,goal,monthlySavings,opening,api,model,url]){c.dispose();}super.dispose();}
+  @override void dispose(){for(final c in [income,goal,monthlySavings,api,model,url]){c.dispose();}super.dispose();}
   double? amount(String raw){final v=double.tryParse(raw.trim().replaceAll(',','.'));return v!=null&&v.isFinite&&v>=0?v:null;}
   Future<void> submit() async {
-    final inc=amount(income.text),sav=amount(goal.text),monthly=amount(monthlySavings.text),initial=amount(opening.text);
-    if(inc==null||sav==null||monthly==null||initial==null){widget.onInvalid();return;}
+    final inc=amount(income.text),sav=amount(goal.text),monthly=amount(monthlySavings.text);
+    if(inc==null||sav==null||monthly==null){widget.onInvalid();return;}
     await widget.onSave({
       'monthly_income':inc,'income_frequency':incomeFrequency,
       'income_start_date':'${incomePayday.year}-${incomePayday.month.toString().padLeft(2,'0')}-${incomePayday.day.toString().padLeft(2,'0')}',
-      'savings_goal':sav,'monthly_savings':monthly,'opening_balance':initial,
+      'savings_goal':sav,'monthly_savings':monthly,
       'currency':currency,
       'ai_provider':provider,'ai_api_key':api.text.trim(),
       'ai_model':model.text.trim(),'ai_base_url':url.text.trim(),
@@ -1207,7 +1245,7 @@ class _SettingsPanelState extends State<SettingsPanel> {
         TextField(controller:goal,keyboardType:const TextInputType.numberWithOptions(decimal:true),decoration:InputDecoration(labelText:t('goal'))),
         TextField(controller:monthlySavings,keyboardType:const TextInputType.numberWithOptions(decimal:true),decoration:InputDecoration(labelText:t('monthlySavings'))),
         Text(t('monthlySavingsHint')),
-        TextField(controller:opening,keyboardType:const TextInputType.numberWithOptions(decimal:true),decoration:InputDecoration(labelText:t('openingEdit'))),
+        ListTile(leading:const Icon(Icons.account_balance_wallet_outlined),title:Text(t('correctAvailable')),onTap:widget.onCorrectAvailable),
         ListTile(leading:const Icon(Icons.savings_outlined),title:Text(t('correctSavings')),onTap:widget.onCorrectSavings),
         ListTile(leading:const Icon(Icons.flag_outlined),title:Text(t('newSavingsGoal')),subtitle:Text(t('newSavingsGoalHint')),onTap:()async{await widget.onNewGoal();if(mounted){goal.text='${widget.data['savings_goal']??0}';}}),
         DropdownButtonFormField<String>(key:ValueKey('currency-$currency'),initialValue:currency,decoration:InputDecoration(labelText:t('currency')),items:['USD','CAD','EUR','GBP','BDT','CUP'].map((v)=>DropdownMenuItem(value:v,child:Text(v))).toList(),onChanged:(v)=>setState(()=>currency=v??'USD')),

@@ -1,6 +1,10 @@
-# MafiFlow Android — Multi-profile beta 1.0.10
+# MafiFlow Android 1.0.13+24
 
-This source ZIP includes versioned multi-profile migration, period-statistics repairs, full-balance context for AI, an offline financial overview, translated provider errors and GitHub workflow tests. See [RELEASE_NOTES_1.0.10.md](RELEASE_NOTES_1.0.10.md) for migration, privacy and required device tests. **This is not a compiled or validated APK/AAB.**
+Consulta VALIDACION_1.0.13.md para compilación, artefactos y límites de validación de esta entrega. Las notas siguientes son históricas.
+
+# MafiFlow Android — Savings & Profiles beta 1.0.11
+
+This source ZIP preserves the tested 1.0.10 multi-profile functionality and adds goal completion/restart, flexible savings transfers and corrections, pre-existing savings onboarding, correct AI context, and a per-profile data wipe. See [RELEASE_NOTES_1.0.11.md](RELEASE_NOTES_1.0.11.md) for full change notes and device test cases. **The sources have not been compiled or tested with Flutter in this environment.**
 
 ---
 
